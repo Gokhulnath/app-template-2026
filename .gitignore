@@ -29,8 +29,9 @@ htmlcov/
 .env.*
 !.env.example
 
-# Claude Code per-user settings
+# Claude Code: per-user settings, and the git worktrees its agents work in
 .claude/settings.local.json
+.claude/worktrees/
 
 # Written by scripts/build-packages.sh for release builds; never committed.
 apps/cli/src/myapp/release_api_url.txt

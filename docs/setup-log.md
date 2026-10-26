@@ -1706,3 +1706,11 @@ three layers against that:
   - `[tool.coverage.report] fail_under` sits just under today's numbers (API 99.3% → 98, CLI
     94.6% → 94), so pruning can't quietly drop what tests protect
   - `.coverage` and `htmlcov/` are gitignored
+
+## Ignore Claude Code's agent worktrees
+
+Commit: `chore(repo): ignore Claude Code's agent worktrees`
+
+Ported from donna (its step 70). Agents working in parallel get their own git worktrees
+under `.claude/worktrees/`, each a full copy of the repo. `.gitignore` now lists the folder,
+so a stray `git add` can't pick it up, and Prettier's `--check .` skips the copies.

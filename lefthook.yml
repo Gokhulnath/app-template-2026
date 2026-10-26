@@ -7,8 +7,12 @@ pre-commit:
       glob: "*.{js,mjs,cjs,ts,tsx,json,css,md,yml,yaml}"
       run: pnpm exec prettier --write --ignore-unknown {staged_files}
       stage_fixed: true
-    - name: eslint
+    - name: eslint-web
       root: "apps/web/"
+      glob: "*.{js,mjs,ts,tsx}"
+      run: pnpm exec eslint {staged_files}
+    - name: eslint-ui
+      root: "packages/ui/"
       glob: "*.{js,mjs,ts,tsx}"
       run: pnpm exec eslint {staged_files}
     # Ruff runs inside each app, so import sorting sees that app's own package as

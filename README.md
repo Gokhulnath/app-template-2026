@@ -44,7 +44,7 @@ API.
 | `pnpm lint`                                            | Prettier check, ESLint (web), `ruff check` + `ruff format --check` (api, cli)   |
 | `pnpm typecheck`                                       | `tsc` (web), pyright (api, cli)                                                 |
 | `pnpm format`                                          | Prettier, plus ruff fix and format                                              |
-| `pnpm test`                                            | pytest (api, cli)                                                               |
+| `pnpm test`                                            | pytest with coverage and its floor (api, cli)                                   |
 | `pnpm verify`                                          | the pre-merge check: lint, types, tests, builds, macOS and Linux desktop builds |
 | `pnpm myapp …`                                         | the `myapp` CLI, e.g. `pnpm myapp status`                                       |
 | `pnpm db:start` / `db:stop` / `db:reset` / `db:status` | local Supabase stack                                                            |

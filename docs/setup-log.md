@@ -1680,3 +1680,29 @@ Commits: `ci: tidy the release PR even when release-please leaves it unchanged` 
   required") until the owner approves it. `docs/releasing.md` and `CLAUDE.md` now say so. The
   tidy commit, pushed with `GITHUB_TOKEN`, starts no run, so the release PR still merges with
   `--admin`.
+
+## Keep tests from piling up
+
+Commit: `build(repo): measure coverage and gate new tests`
+
+Models add a test per small change, and the pile costs more than it catches: OpenClaw
+deleted about 400k lines of its own tests with little change in coverage, using a
+test-audit skill (Peter Steinberger, 2026-09-24). Ported from donna (its step 69); the
+three layers against that:
+
+- **A gate in `CLAUDE.md`** ("Tests"): a new test names the behavior it protects, a
+  realistic bug that breaks it, and why existing tests miss that bug. Each behavior has one
+  owner at the strongest boundary (the API contract in `apps/api/tests` against the real
+  database; each client tests its own job against a fake API). No implementation-detail
+  tests, and one regression test per bug.
+- **A repo skill, `.claude/skills/test-audit/SKILL.md`**: what to cut, what to keep, and how
+  to audit an app in batches with coverage before and after. It's written for this repo
+  and inspired by OpenClaw's (MIT); nothing is copied. Validated with
+  `uvx --from skills-ref==0.1.1 agentskills validate .claude/skills/test-audit`.
+- **Coverage on every run**:
+  - `uv add --dev "pytest-cov>=7"` in `apps/api` and `apps/cli`
+  - each `pyproject.toml` gets `[tool.pytest.ini_options] addopts = ["--cov", "--cov-report=term-missing:skip-covered"]`
+  - `[tool.coverage.run]` is `source` = the app's package, with `branch = true`
+  - `[tool.coverage.report] fail_under` sits just under today's numbers (API 99.3% → 98, CLI
+    94.6% → 94), so pruning can't quietly drop what tests protect
+  - `.coverage` and `htmlcov/` are gitignored

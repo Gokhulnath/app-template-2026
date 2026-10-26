@@ -34,6 +34,28 @@ as much as what it does.
   actions and no route handlers. Data comes from the API through `src/lib/api.ts`.
 - New config values get a commented line in the app's `.env.example`.
 
+## Tests
+
+Tests protect behavior that people and clients rely on. They aren't a receipt for every
+change: models tend to add a test per tiny edit, and the pile costs more than it catches.
+
+- Before adding a test, name the behavior it protects (an API contract, a CLI's output and
+  exit codes, an MCP tool's contract, what a UI shows), a realistic bug that would make it
+  fail, and why the existing tests wouldn't catch that bug. If you can't, extend an
+  existing test (a parametrize case, a shared fixture) or add nothing.
+- Each behavior has one owner, tested at the strongest boundary. The API contract lives in
+  `apps/api/tests`, against the real database. Each client tests its own job (arguments,
+  rendering, exit codes, how it shows errors) against a fake API, and doesn't re-test the
+  API's rules.
+- No tests of implementation details: call shapes, private helpers, mocks that return the
+  very value asserted, copied constants, or hooks added to production code only for tests.
+  A refactor that keeps behavior shouldn't break a test.
+- A bug fix gets one regression test, at the layer that owns the bug, and it fails without
+  the fix.
+- Every `pnpm test` measures coverage against a floor (`fail_under` in each Python app's
+  `pyproject.toml`). Pruning must not lower coverage; raise the floor when it rises.
+- To prune or review a suite, use the `test-audit` skill (`.claude/skills/test-audit/`).
+
 ## Keep the setup log current
 
 Whenever you change the repo's structure, tooling, dependencies or conventions, add the

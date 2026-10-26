@@ -1582,3 +1582,13 @@ checks the builds locally before merging, and CI minutes go to releases.
   - `CLAUDE.md`: run `pnpm verify` before merging, and a new "Keep the template current"
     section
   - the PR template's Verified hint, the README's scripts table, and `docs/releasing.md`
+
+## The database password keys in the Doppler table
+
+Commit: `docs(db): list the database password keys in the Doppler table`
+
+Ported from donna (its step 63). `docs/architecture.md`'s key table lists
+`MYAPP_API_DB_PASSWORD` (the API role's cloud password, which `DATABASE_URL` references)
+and `SUPABASE_POSTGRES_PASSWORD` (the cloud `postgres` password, kept in Doppler `prd` for
+the owner; no code reads it). Reset it in the Supabase dashboard (Project Settings →
+Database → Reset database password) and paste the new one straight into Doppler.

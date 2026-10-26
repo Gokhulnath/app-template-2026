@@ -1,10 +1,13 @@
 """The terminal UI: the same status card as the web app, drawn with Textual."""
 
+import json
+from importlib import resources
 from typing import ClassVar
 
 from textual.app import App, ComposeResult
 from textual.binding import BindingType
 from textual.containers import Center, Vertical
+from textual.theme import Theme
 from textual.widgets import Button, Footer, Static
 
 from myapp.client import Fetch, HealthReport, fetch_health
@@ -12,10 +15,22 @@ from myapp.client import Fetch, HealthReport, fetch_health
 
 def status_markup(report: HealthReport) -> str:
     if report.ok:
-        return "[b green]ok[/]"
+        return "[b $success]ok[/]"
     if report.status == "degraded":
-        return f"[b yellow]degraded[/] (database {report.db})"
-    return f"[b red]{report.status}[/]"
+        return f"[b $warning]degraded[/] (database {report.db})"
+    return f"[b $error]{report.status}[/]"
+
+
+def design_system_themes() -> list[Theme]:
+    """The design system's colors as Textual themes, "myapp-dark" and "myapp-light".
+    theme.json is generated from packages/tokens (pnpm tokens:build), so the terminal UI
+    uses the same palette as the web and desktop apps."""
+    themes = json.loads(resources.files("myapp").joinpath("theme.json").read_text())
+    return [
+        Theme(name=f"myapp-{mode}", **{k: v for k, v in colors.items()})
+        for mode, colors in themes.items()
+        if mode in ("light", "dark")
+    ]
 
 
 class MyappApp(App[None]):
@@ -35,6 +50,9 @@ class MyappApp(App[None]):
 
     def __init__(self, api_url: str, fetch: Fetch = fetch_health) -> None:
         super().__init__()
+        for theme in design_system_themes():
+            self.register_theme(theme)
+        self.theme = "myapp-dark"
         self.api_url = api_url
         self.fetch = fetch
 

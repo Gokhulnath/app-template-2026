@@ -43,9 +43,11 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # release-please bumps each project's version, but uv.lock and Cargo.lock record those
-  # versions too; refresh them on the release PR so CI's lockfile check keeps passing.
-  lockfiles:
+  # Two things release-please's own edits leave for CI to trip over, fixed on the release PR:
+  # uv.lock and Cargo.lock record each project's version too, and release-please writes
+  # CHANGELOG.md and the JSON version files in its own formatting, not Prettier's.
+  tidy:
+    name: Tidy the release PR
     needs: release-please
     if: needs.release-please.outputs.prs_created == 'true'
     runs-on: ubuntu-24.04
@@ -56,17 +58,31 @@ jobs:
       - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
       - run: uv python install 3.14
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
       - name: Refresh the lockfiles for the new version
         run: |
           uv lock --project apps/api
           uv lock --project apps/cli
           cargo update --workspace --manifest-path apps/desktop/src-tauri/Cargo.toml
+      - name: Format the files release-please writes
+        run: |
+          # The repo's own Prettier version, on the changelog, the manifest and every JSON
+          # file release-please-config.json lists.
+          prettier=$(node -p 'require("./package.json").devDependencies.prettier')
+          node -p '
+            const c = require("./release-please-config.json");
+            const json = Object.values(c.packages).flatMap((p) => p["extra-files"] ?? [])
+              .filter((f) => f.type === "json").map((f) => f.path);
+            ["CHANGELOG.md", ".release-please-manifest.json", ...json].join("\n")
+          ' | xargs npx --yes "prettier@$prettier" --write --ignore-unknown --no-error-on-unmatched-pattern
       - name: Commit them to the release PR
         run: |
-          if git diff --quiet; then echo "Lockfiles already current."; exit 0; fi
+          if git diff --quiet; then echo "The release PR is already tidy."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore(main): refresh lockfiles for the release"
+          git commit -am "chore(main): refresh lockfiles and formatting for the release"
           git push
 
   desktop:

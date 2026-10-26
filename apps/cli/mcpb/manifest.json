@@ -1,0 +1,60 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/mcpb/main/schemas/mcpb-manifest-v0.4.schema.json",
+  "manifest_version": "0.4",
+  "name": "myapp",
+  "display_name": "myapp",
+  "version": "0.1.0",
+  "description": "Check whether the myapp API and its database are up.",
+  "long_description": "myapp's MCP server (`myapp mcp`). Every tool calls the myapp HTTP API; today there's one, get_status, which is read-only.",
+  "author": {
+    "name": "Gokhulnath Thirumaran",
+    "email": "gokhulnath.thirumaran@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gokhulnath/myapp"
+  },
+  "icon": "icon.png",
+  "server": {
+    "type": "uv",
+    "entry_point": "src/myapp/cli.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${__dirname}",
+        "--no-dev",
+        "--frozen",
+        "myapp",
+        "mcp"
+      ],
+      "env": {
+        "MYAPP_API_URL": "${user_config.api_url}",
+        "UV_PYTHON_PREFERENCE": "only-managed"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "get_status",
+      "description": "Check whether the myapp API and its database are up"
+    }
+  ],
+  "user_config": {
+    "api_url": {
+      "type": "string",
+      "title": "API URL",
+      "description": "Base URL of the myapp API.",
+      "default": "http://localhost:8000",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "python": ">=3.14"
+    }
+  },
+  "keywords": ["myapp", "status", "health"]
+}

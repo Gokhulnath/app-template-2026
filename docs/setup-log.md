@@ -1592,3 +1592,56 @@ Ported from donna (its step 63). `docs/architecture.md`'s key table lists
 and `SUPABASE_POSTGRES_PASSWORD` (the cloud `postgres` password, kept in Doppler `prd` for
 the owner; no code reads it). Reset it in the Supabase dashboard (Project Settings →
 Database → Reset database password) and paste the new one straight into Doppler.
+
+## Release packages: the CLI, the MCP bundle and the Agent Skill
+
+Commits: `feat(cli): default to the API a release was built for` and
+`feat(repo): ship the CLI, MCP bundle and Agent Skill in every release`
+
+Ported from donna (its step 65). Releases attached only the desktop installers. Now every
+release also carries:
+
+- the CLI with its terminal UI and MCP server, as a wheel and sdist
+- the MCP server as a Claude Desktop extension (`.mcpb`)
+- the Agent Skill as a zip
+- `SHA256SUMS`, plus install steps added to the release notes
+
+What changed:
+
+- `scripts/build-packages.sh` (`pnpm build:packages`, and a step of `pnpm verify`) builds
+  them into `dist/release/`:
+  - `uv build --project apps/cli`: a pure-Python `py3-none-any` wheel. pydantic-core and the
+    other native dependencies come from PyPI at install time.
+  - the skill zip has the `myapp/` folder at its root (what Claude's skill upload expects),
+    without the dev-only `evals/`
+  - the `.mcpb` is packed with `npx @anthropic-ai/mcpb@2.1.2 pack` from
+    `apps/cli/mcpb/manifest.json`: manifest 0.4, server type `uv`. It carries source,
+    `pyproject.toml` and `uv.lock`, not wheels, so one build serves every OS. Claude Desktop
+    runs `uv run --directory ${__dirname} --no-dev --frozen myapp mcp`.
+    `UV_PYTHON_PREFERENCE=only-managed` keeps it on uv's own Python builds, and the API URL
+    is a `user_config` setting. The repo's `.python-version` (`3.14+gil`) stays out, because
+    `+gil` never downloads.
+  - `--api-url <url>` writes `apps/cli/src/myapp/release_api_url.txt` (gitignored, removed
+    afterwards) and the bundle setting's default. `myapp.client.DEFAULT_API_URL` reads that
+    file when it's there, so the order is `--api-url`, then `MYAPP_API_URL`, then the
+    release's API, then `http://localhost:8000`.
+- `.github/workflows/packages.yml`, called by `release.yml` like `desktop.yml`:
+  - one Ubuntu job that reads prd's `NEXT_PUBLIC_API_URL` through `DOPPLER_TOKEN_PRD`, or
+    defaults to localhost until it exists
+  - runs the script, uploads with `gh release upload --clobber`
+  - appends `.github/release-install.md` to the notes once (marker
+    `<!-- install-steps -->`)
+  - a manual Release run with a tag rebuilds the packages too
+- `release-please-config.json` bumps `apps/cli/mcpb/manifest.json`'s version with the rest.
+- Verified locally:
+  - the wheel installed into an isolated `uv tool` dir and ran on Python 3.14.7 (GIL). With
+    `--api-url https://api.example.test` it defaulted to that URL, and `MYAPP_API_URL`
+    overrode it.
+  - the `.mcpb`, unzipped and started by its manifest's own command, on a simulated fresh
+    machine (empty `UV_PYTHON_INSTALL_DIR` and `UV_CACHE_DIR`). uv downloaded CPython 3.14.7
+    (GIL) and 76 packages, and the server started in 5 s cold and 1 s warm. An MCP client
+    listed `get_status` and called it against the local API: `ok`, database `ok`. No dev
+    tools landed in the bundle's environment.
+  - the skill zip holds only `myapp/SKILL.md`
+- Not verified: installing the `.mcpb` in Claude Desktop itself (a GUI step), and whether
+  Claude Desktop provides `uv` or needs it installed. The install steps say to install it.

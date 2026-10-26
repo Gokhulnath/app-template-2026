@@ -1,0 +1,76 @@
+name: Packages
+
+# Builds what a release ships besides the desktop installers (scripts/build-packages.sh):
+# the CLI and MCP server (wheel and sdist), the MCP bundle for Claude Desktop (.mcpb), the
+# Agent Skill (.zip) and SHA256SUMS. Uploads them to the release and adds the install steps
+# to its notes. Called by the Release workflow with a tag: one Ubuntu job, about a minute.
+#
+# The packages default to Doppler prd's NEXT_PUBLIC_API_URL once it's set, and to
+# http://localhost:8000 until then. MYAPP_API_URL overrides it on the user's side.
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+
+permissions:
+  contents: write
+
+# Actions are pinned to commit SHAs; Renovate updates the SHA and version comment together.
+jobs:
+  packages:
+    name: Release packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      TAG: ${{ inputs.tag }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+      - run: uv python install 3.14
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+      - uses: dopplerhq/cli-action@4819d808ab99e5cde19a0637a16536a4038fad73 # v4
+
+      - name: Read the production API URL
+        id: api
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN_PRD }}
+        run: |
+          url=$(doppler secrets get NEXT_PUBLIC_API_URL --plain 2>/dev/null || true)
+          if [ -z "$url" ]; then
+            echo "::notice::Doppler prd has no NEXT_PUBLIC_API_URL yet, so the packages default to http://localhost:8000."
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Build the packages
+        env:
+          API_URL: ${{ steps.api.outputs.url }}
+        run: |
+          if [ -n "$API_URL" ]; then
+            scripts/build-packages.sh --api-url "$API_URL"
+          else
+            scripts/build-packages.sh
+          fi
+
+      - name: Upload them to the release
+        run: gh release upload "$TAG" dist/release/* --clobber
+
+      - name: Add the install steps to the release notes
+        run: |
+          body=$(gh release view "$TAG" --json body --jq .body)
+          if grep -qF '<!-- install-steps -->' <<<"$body"; then
+            echo "The notes already have the install steps."
+            exit 0
+          fi
+          {
+            printf '%s\n\n' "$body"
+            sed -e "s/{{version}}/${TAG#v}/g" -e "s/{{tag}}/$TAG/g" .github/release-install.md
+          } > notes.md
+          gh release edit "$TAG" --notes-file notes.md

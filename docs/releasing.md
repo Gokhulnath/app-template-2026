@@ -17,6 +17,35 @@ the same API.
    - builds the desktop installers (`.github/workflows/desktop.yml`) and attaches them to
      the release: `.dmg` for macOS (Apple Silicon), `.msi` and `.exe` for Windows, and
      `.AppImage`, `.deb` and `.rpm` for Linux
+   - builds the other packages (`.github/workflows/packages.yml`, one Ubuntu job), attaches
+     them, and adds the install steps to the release notes (see below)
+
+## What a release contains
+
+| File                                                      | What                                                      | Install                                                        |
+| --------------------------------------------------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+| `.dmg`, `.msi`, `-setup.exe`, `.AppImage`, `.deb`, `.rpm` | the desktop app, once the production API is deployed      | open the installer for your OS                                 |
+| `myapp-X.Y.Z-py3-none-any.whl` (and `.tar.gz`)            | the CLI, its terminal UI and the MCP server (`myapp mcp`) | `uv tool install --force ./myapp-X.Y.Z-py3-none-any.whl`       |
+| `myapp-X.Y.Z.mcpb`                                        | the MCP server as a one-click Claude Desktop extension    | open it in Claude Desktop (needs uv)                           |
+| `myapp-skill-X.Y.Z.zip`                                   | the Agent Skill, which drives the CLI                     | unzip into `~/.claude/skills/`, or upload in Claude's settings |
+| `SHA256SUMS`                                              | checksums of the files above                              | `sha256sum --check --ignore-missing SHA256SUMS`                |
+
+The install steps added to every release's notes come from `.github/release-install.md`.
+Because the repo is private, downloads need an account with access to it
+(`gh release download <tag> --repo Gokhulnath/myapp --pattern <file>`).
+
+- **Which API the packages use:** `scripts/build-packages.sh --api-url` bakes Doppler prd's
+  `NEXT_PUBLIC_API_URL` in as the default, into `myapp/release_api_url.txt` in the wheel and
+  the bundle's settings. Until prd has one, they default to `http://localhost:8000`.
+  `--api-url` and `MYAPP_API_URL` override it, and in Claude Desktop the extension's API URL
+  setting does.
+- **The MCP bundle** is the `uv` server type: it carries source and `uv.lock`, not
+  compiled packages. Claude Desktop runs
+  `uv run --directory ${__dirname} --no-dev --frozen myapp mcp`, and uv installs the
+  dependencies (pydantic-core among them) for the user's OS, plus Python 3.14 if it's
+  missing. `UV_PYTHON_PREFERENCE=only-managed` keeps it on uv's own Python builds.
+- `pnpm build:packages` builds all of it into `dist/release/`, and `pnpm verify` runs it, so
+  packaging problems show up before a release.
 
 ### Version numbers (while below 1.0)
 
@@ -49,9 +78,10 @@ Doppler **prd** (through the read-only `DOPPLER_TOKEN_PRD` secret) and limits th
 `connect-src` to that origin.
 
 - **If prd has no `NEXT_PUBLIC_API_URL`** (true until the API is deployed), the release
-  still gets its tag and notes, but the desktop jobs skip with a warning instead of shipping
-  an app that points at localhost.
-- Once the URL is set, add the installers to an existing release:
+  still gets its tag, notes and the other packages (which default to localhost), but the
+  desktop jobs skip with a warning instead of shipping an app that points at localhost.
+- Once the URL is set, add the installers to an existing release, and rebuild its packages
+  against the production API:
   `gh workflow run release.yml --repo Gokhulnath/myapp -f tag=vX.Y.Z`.
 
 ## Testing desktop changes before a release

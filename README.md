@@ -39,6 +39,7 @@ API.
 | `pnpm dev:api`                                         | `fastapi dev` (port 8000; override with `--port`)                               |
 | `pnpm dev:desktop` / `build:desktop`                   | the Tauri desktop app (needs Rust)                                              |
 | `pnpm build:desktop:linux`                             | the desktop app's Linux bundles, built in Docker (`--amd64` for x86_64)         |
+| `pnpm build:packages`                                  | a release's CLI, MCP bundle and Skill packages, into `dist/release/`            |
 | `pnpm build`                                           | static export of the web app into `apps/web/out/`                               |
 | `pnpm lint`                                            | Prettier check, ESLint (web), `ruff check` + `ruff format --check` (api, cli)   |
 | `pnpm typecheck`                                       | `tsc` (web), pyright (api, cli)                                                 |

@@ -57,7 +57,9 @@ pnpm myapp                 # interactive terminal UI (in a terminal)
 uv tool install --editable apps/cli   # put `myapp` on your PATH
 ```
 
-The API URL comes from `--api-url`, then `MYAPP_API_URL`, then `http://localhost:8000`.
+The API URL comes from `--api-url`, then `MYAPP_API_URL`, then the API a release was
+built for, then `http://localhost:8000`. Releases attach the CLI, the MCP bundle for Claude
+Desktop and the Agent Skill (see `docs/releasing.md`).
 Exit codes are `0` for healthy or succeeded and `1` for not; Typer uses `2` for usage
 errors.
 

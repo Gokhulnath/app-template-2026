@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # The pre-merge check, run from the repo root as `pnpm verify` before merging a PR: what CI
-# runs (lint, types, tests against the local database, the web build), plus the desktop
-# builds that CI only runs for releases. On a Mac that's the macOS app and the Linux
-# bundles in Docker. Windows has no local build here; the release workflow builds it.
+# runs (lint, types, tests against the local database, the web build), plus what CI only
+# builds for releases: the CLI, MCP and Skill packages, and the desktop apps. On a Mac
+# that's the macOS app and the Linux bundles in Docker. Windows has no local build here;
+# the release workflow builds it.
 #
 #   pnpm verify               # everything
 #   pnpm verify --no-desktop  # skip the desktop builds, for a change that can't affect them
@@ -48,6 +49,7 @@ fi
 # As in CI: tests that need the database fail instead of skipping when it's down.
 step "test" env MYAPP_REQUIRE_DB=1 pnpm test
 step "build" pnpm build
+step "release packages" scripts/build-packages.sh
 
 if [[ $desktop == yes ]]; then
   case "$(uname -s)" in

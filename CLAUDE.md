@@ -75,8 +75,8 @@ private (secrets, cloud identifiers, local paths). Product features stay here.
 
 - release-please cuts releases from the Conventional Commits on `main`, with one product
   version for every app. See `docs/releasing.md`. Don't hand-edit versions in
-  `tauri.conf.json`, `Cargo.toml`, the `pyproject.toml` files or `apps/web/package.json`;
-  the release PR bumps them.
+  `tauri.conf.json`, `Cargo.toml`, the `pyproject.toml` files, `apps/web/package.json` or
+  `apps/cli/mcpb/manifest.json`; the release PR bumps them.
 - The owner decides when to release by merging the release PR (with `--admin`, since its CI
   doesn't run).
 - CI builds the desktop installers only for releases and manual runs, never on PRs, to save

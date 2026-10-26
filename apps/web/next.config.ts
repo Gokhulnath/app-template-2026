@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   output: "export",
   // next/image's default loader needs a server; serve images as-is.
   images: { unoptimized: true },
+  // @myapp/ui and @myapp/tokens are consumed as source (no build step), so Next.js has to
+  // run its own TS/JS transform over them like it does for this app's own code.
+  transpilePackages: ["@myapp/ui", "@myapp/tokens"],
   turbopack: {
     rules: {
       "*.css": {

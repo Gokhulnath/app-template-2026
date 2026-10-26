@@ -5,10 +5,28 @@ Like every myapp client, it only talks to the API; no logic lives here.
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from importlib import resources
 
 import httpx
 
-DEFAULT_API_URL = "http://localhost:8000"
+LOCAL_API_URL = "http://localhost:8000"
+
+
+def release_api_url() -> str | None:
+    """The API URL a release was built for, if this is a release build.
+
+    scripts/build-packages.sh writes it to myapp/release_api_url.txt before building the
+    wheel and the MCP bundle. A checkout has no such file, so it talks to localhost.
+    """
+    try:
+        url = resources.files("myapp").joinpath("release_api_url.txt").read_text()
+    except FileNotFoundError:
+        return None
+    return url.strip() or None
+
+
+# What --api-url and MYAPP_API_URL override.
+DEFAULT_API_URL = release_api_url() or LOCAL_API_URL
 
 
 @dataclass(frozen=True)

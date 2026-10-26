@@ -35,10 +35,10 @@ def test_defaults_reject_other_origins() -> None:
 
 def test_production_settings_allow_only_listed_origins() -> None:
     settings = IsolatedSettings(
-        cors_origins="https://donna.example,tauri://localhost",
+        cors_origins="https://myapp.example,tauri://localhost",
         cors_allow_localhost=False,
     )
-    assert allowed_origin(settings, "https://donna.example") == "https://donna.example"
+    assert allowed_origin(settings, "https://myapp.example") == "https://myapp.example"
     assert allowed_origin(settings, "tauri://localhost") == "tauri://localhost"
     assert allowed_origin(settings, "http://localhost:3000") is None
 

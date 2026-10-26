@@ -1,6 +1,6 @@
 # api
 
-The donna API: FastAPI 0.162 on Python 3.14 (GIL build), managed with uv. All of donna's
+The myapp API: FastAPI 0.162 on Python 3.14 (GIL build), managed with uv. All of myapp's
 business logic and data access live here. Every client talks to this API.
 
 ## Layout

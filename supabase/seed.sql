@@ -3,4 +3,4 @@
 
 -- The API's local login (matches apps/api's default DATABASE_URL). Cloud passwords are set
 -- by hand and live only in Doppler.
-alter role donna_api with password 'donna_api';
+alter role myapp_api with password 'myapp_api';

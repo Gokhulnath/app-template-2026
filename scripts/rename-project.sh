@@ -42,7 +42,7 @@ while IFS= read -r -d '' file; do
   grep -Iq . "$file" || continue # binary (icons)
   grep -qi -- "$old" "$file" || continue
   # Whole tokens only: the name may not touch other letters or digits, but `_`, `-`, `.`
-  # and `/` are boundaries, so donna_api, DonnaApp and DONNA_API_URL are renamed while
+  # and `/` are boundaries, so myapp_api, MyappApp and MYAPP_API_URL are renamed while
   # an unrelated word that merely contains the name (Madonna) is left alone.
   perl -pi -e 's/(?<![A-Za-z0-9])\Q$ENV{OLD_UPPER}\E(?![A-Z0-9])/$ENV{NEW_UPPER}/g;
                s/(?<![A-Za-z0-9])\Q$ENV{OLD_CAP}\E(?![a-z0-9])/$ENV{NEW_CAP}/g;

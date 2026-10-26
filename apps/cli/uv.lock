@@ -301,7 +301,7 @@ wheels = [
 ]
 
 [[package]]
-name = "donna"
+name = "myapp"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

@@ -3,8 +3,8 @@ import json
 import pytest
 from typer.testing import CliRunner
 
-from donna import cli
-from donna.client import HealthReport
+from myapp import cli
+from myapp.client import HealthReport
 
 runner = CliRunner()
 
@@ -40,7 +40,7 @@ def test_status_json_and_exit_code_when_degraded(
 
 def test_api_url_flag_beats_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(cli, "fetch_health", fake_fetch(HealthReport("", "ok", "ok")))
-    monkeypatch.setenv("DONNA_API_URL", "http://from-env")
+    monkeypatch.setenv("MYAPP_API_URL", "http://from-env")
     from_env = runner.invoke(cli.app, ["status", "--json"])
     from_flag = runner.invoke(
         cli.app, ["--api-url", "http://from-flag/", "status", "--json"]
@@ -49,7 +49,7 @@ def test_api_url_flag_beats_env(monkeypatch: pytest.MonkeyPatch) -> None:
     assert json.loads(from_flag.output)["api_url"] == "http://from-flag"
 
 
-def test_bare_donna_without_a_terminal_prints_help() -> None:
+def test_bare_myapp_without_a_terminal_prints_help() -> None:
     result = runner.invoke(cli.app, [])
     assert result.exit_code == 0
     assert "status" in result.output

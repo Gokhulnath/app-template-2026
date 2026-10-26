@@ -9,10 +9,10 @@ class Settings(BaseSettings):
     # fallback for local overrides.
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    # The API connects as the least-privilege donna_api role. The default is the local
+    # The API connects as the least-privilege myapp_api role. The default is the local
     # Supabase stack (pnpm db:start); the cloud URL lives only in Doppler.
     database_url: str = (
-        "postgresql+asyncpg://donna_api:donna_api@127.0.0.1:54322/postgres"
+        "postgresql+asyncpg://myapp_api:myapp_api@127.0.0.1:54322/postgres"
     )
     # Seconds /health waits for the database before reporting it unavailable. A first
     # connection to a remote database (DNS, TLS, auth, SQLAlchemy's setup queries) took

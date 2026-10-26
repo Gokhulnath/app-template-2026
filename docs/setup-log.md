@@ -1525,3 +1525,11 @@ Commits: `ci: skip releases in template repositories` and
 - `docs/template.md`: path A creates the repo from the template, then renames it:
   `gh repo create <owner>/<name> --private --template <owner>/app-template-2026 --clone`.
   "Changing the template" replaces "Freezing a new snapshot".
+
+---
+
+## Renamed from donna to myapp
+
+`scripts/rename-project.sh myapp` renamed every `donna` / `Donna` / `DONNA` to
+`myapp` / `Myapp` / `MYAPP`, and moved `apps/cli/src/donna` and `skills/donna`.
+The steps above are the template's history and still use its earlier names.

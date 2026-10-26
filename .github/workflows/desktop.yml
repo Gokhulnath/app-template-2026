@@ -127,6 +127,6 @@ jobs:
         if: steps.api.outputs.build == 'true' && !inputs.tag
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: donna-desktop-${{ matrix.target }}
+          name: myapp-desktop-${{ matrix.target }}
           path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/
           retention-days: 7

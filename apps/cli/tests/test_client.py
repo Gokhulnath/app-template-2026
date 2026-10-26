@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from donna.client import HealthReport, fetch_health
+from myapp.client import HealthReport, fetch_health
 
 API = "http://api.test"
 

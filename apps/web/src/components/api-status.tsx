@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { Button, Stack } from "@myapp/ui";
+
 import { apiFetch } from "@/lib/api";
 
 type Health = { status: "ok" | "degraded"; db: "ok" | "unavailable" };
@@ -33,15 +35,19 @@ export function ApiStatus() {
   }
 
   return (
-    <span className="inline-flex items-center gap-3">
-      <code data-testid="api-status">{status}</code>
-      <button
-        type="button"
-        onClick={recheck}
-        className="rounded-full border border-black/10 px-3 py-0.5 text-sm hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
-      >
+    <Stack
+      as="span"
+      direction="row"
+      align="center"
+      gap={3}
+      className="inline-flex"
+    >
+      <code data-testid="api-status" role="status">
+        {status}
+      </code>
+      <Button type="button" variant="secondary" size="sm" onClick={recheck}>
         Check again
-      </button>
-    </span>
+      </Button>
+    </Stack>
   );
 }

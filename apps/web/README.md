@@ -24,6 +24,10 @@ Or from this folder: `pnpm dev`, `pnpm build` (static export in `out/`),
   apply. Export mode also makes the build fail on server-only features (`cookies()`,
   server actions, route handlers that read the request, proxy). That keeps the logic in the
   API.
+- **Every element comes from the design system** (`@myapp/ui`; see
+  [`docs/design-system.md`](../../docs/design-system.md)). `src/app/globals.css` imports its
+  stylesheet and makes the page full height; the app sets no colors, font sizes, radii or
+  shadows of its own.
 - **All data comes from the API, fetched in the browser**, through `src/lib/api.ts`. That
   file is the one place that knows the API's URL. Components that fetch are client
   components (`"use client"`).

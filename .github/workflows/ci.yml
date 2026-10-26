@@ -45,6 +45,9 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Start the local database (migrations and seed applied)
         run: pnpm exec supabase db start
+      # The design system's tests render every Storybook story in a headless Chromium.
+      - name: Install Chromium for the Storybook tests
+        run: pnpm --filter @myapp/ui exec playwright install --with-deps chromium
 
       - run: pnpm lint
       - run: pnpm typecheck

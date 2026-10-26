@@ -46,15 +46,40 @@ jobs:
   # Two things release-please's own edits leave for CI to trip over, fixed on the release PR:
   # uv.lock and Cargo.lock record each project's version too, and release-please writes
   # CHANGELOG.md and the JSON version files in its own formatting, not Prettier's.
+  # release-please leaves its PR alone when a push changes nothing in it (a ci: or docs:
+  # commit), so this looks the PR up itself and skips the work once it's already tidy.
+  release-pr:
+    name: Find the release PR to tidy
+    needs: release-please
+    if: needs.release-please.outputs.release_created != 'true'
+    runs-on: ubuntu-24.04
+    outputs:
+      branch: ${{ steps.find.outputs.branch }}
+    steps:
+      - id: find
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          branch=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --label "autorelease: pending" \
+            --json headRefName --jq '.[0].headRefName // ""')
+          if [ -n "$branch" ]; then
+            head=$(gh api "repos/$GITHUB_REPOSITORY/commits/$branch" --jq '.commit.message | split("\n")[0]')
+            if [ "$head" = "chore(main): refresh lockfiles and formatting for the release" ]; then
+              echo "The release PR is already tidy."
+              branch=""
+            fi
+          fi
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
   tidy:
     name: Tidy the release PR
-    needs: release-please
-    if: needs.release-please.outputs.prs_created == 'true'
+    needs: release-pr
+    if: needs.release-pr.outputs.branch != ''
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ fromJSON(needs.release-please.outputs.pr).headBranchName }}
+          ref: ${{ needs.release-pr.outputs.branch }}
       - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
       - run: uv python install 3.14
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable

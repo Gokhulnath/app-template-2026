@@ -1,0 +1,120 @@
+{
+  "font": {
+    "family": {
+      "$type": "fontFamily",
+      "sans": {
+        "$value": ["Geist", "ui-sans-serif", "system-ui", "sans-serif"],
+        "$description": "Everything but code."
+      },
+      "mono": {
+        "$value": [
+          "Geist Mono",
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "monospace"
+        ],
+        "$description": "Code, ids and URLs."
+      }
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": {
+        "$value": 400
+      },
+      "medium": {
+        "$value": 500
+      },
+      "semibold": {
+        "$value": 600
+      }
+    },
+    "size": {
+      "$type": "dimension",
+      "xs": {
+        "$value": {
+          "value": 0.75,
+          "unit": "rem"
+        }
+      },
+      "sm": {
+        "$value": {
+          "value": 0.875,
+          "unit": "rem"
+        }
+      },
+      "base": {
+        "$value": {
+          "value": 1,
+          "unit": "rem"
+        }
+      },
+      "lg": {
+        "$value": {
+          "value": 1.125,
+          "unit": "rem"
+        }
+      },
+      "xl": {
+        "$value": {
+          "value": 1.25,
+          "unit": "rem"
+        }
+      },
+      "2xl": {
+        "$value": {
+          "value": 1.5,
+          "unit": "rem"
+        }
+      },
+      "3xl": {
+        "$value": {
+          "value": 1.875,
+          "unit": "rem"
+        }
+      },
+      "$description": "In rem, so text scales with the reader's browser font size (1rem is 16px by default)."
+    },
+    "line-height": {
+      "$type": "number",
+      "$description": "Unitless, matched to each size.",
+      "xs": {
+        "$value": 1.333
+      },
+      "sm": {
+        "$value": 1.429
+      },
+      "base": {
+        "$value": 1.5
+      },
+      "lg": {
+        "$value": 1.556
+      },
+      "xl": {
+        "$value": 1.4
+      },
+      "2xl": {
+        "$value": 1.333
+      },
+      "3xl": {
+        "$value": 1.2
+      }
+    },
+    "tracking": {
+      "$type": "dimension",
+      "tight": {
+        "$value": {
+          "value": -0.02,
+          "unit": "em"
+        },
+        "$description": "Headings from xl up."
+      },
+      "normal": {
+        "$value": {
+          "value": 0,
+          "unit": "em"
+        }
+      }
+    }
+  }
+}

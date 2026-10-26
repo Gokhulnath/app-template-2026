@@ -1,11 +1,14 @@
 packages:
   - apps/*
+  - packages/*
 
 # pnpm 11 asks before running a dependency's install script: true allows it, false blocks
 # it, and an unlisted package is left to `pnpm approve-builds`. create-next-app wrote these
 # two into apps/web (both ship prebuilt binaries, so their install scripts aren't needed);
 # they moved here because a nested pnpm-workspace.yaml would split the workspace.
 allowBuilds:
+  # esbuild's postinstall fetches its platform binary; Vite/Vitest (packages/ui) need it.
+  esbuild: true
   # Git hooks are installed by the root "prepare" script, not lefthook's postinstall.
   lefthook: false
   sharp: false

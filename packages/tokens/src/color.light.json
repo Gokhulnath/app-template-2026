@@ -1,0 +1,78 @@
+{
+  "$description": "Semantic colors for the light theme. Every color a component uses is one of these, never a palette value.",
+  "color": {
+    "$type": "color",
+    "bg": {
+      "$value": "{palette.neutral.0}",
+      "$description": "The page background."
+    },
+    "surface": {
+      "$value": "{palette.neutral.0}",
+      "$description": "Cards, panels and inputs: anything that sits on the page."
+    },
+    "surface-muted": {
+      "$value": "{palette.neutral.100}",
+      "$description": "Hover and pressed backgrounds, subtle fills."
+    },
+    "text": {
+      "$value": "{palette.neutral.900}",
+      "$description": "Body text and headings."
+    },
+    "text-muted": {
+      "$value": "{palette.neutral.500}",
+      "$description": "Secondary text: hints, counts, metadata."
+    },
+    "border": {
+      "$value": "{palette.neutral.200}",
+      "$description": "Dividers and the default outline of cards and inputs."
+    },
+    "border-strong": {
+      "$value": "{palette.neutral.500}",
+      "$description": "The outline of a control with no other visible edge (a checkbox, a text field): at least 3:1 against surface and bg, as WCAG 1.4.11 asks."
+    },
+    "accent": {
+      "$value": "{palette.blue.600}",
+      "$description": "Primary actions and selected states."
+    },
+    "accent-hover": {
+      "$value": "{palette.blue.700}",
+      "$description": "The accent, hovered."
+    },
+    "accent-fg": {
+      "$value": "{palette.neutral.0}",
+      "$description": "Text and icons on the accent color."
+    },
+    "accent-subtle": {
+      "$value": "{palette.blue.50}",
+      "$description": "A tinted background for accent highlights."
+    },
+    "focus": {
+      "$value": "{palette.blue.500}",
+      "$description": "The keyboard focus ring."
+    },
+    "success": {
+      "$value": "{palette.green.700}",
+      "$description": "Success text and icons, such as the Live dot."
+    },
+    "success-subtle": {
+      "$value": "{palette.green.50}",
+      "$description": "A success background."
+    },
+    "warning": {
+      "$value": "{palette.amber.700}",
+      "$description": "Warning text and icons, such as Reconnecting."
+    },
+    "warning-subtle": {
+      "$value": "{palette.amber.50}",
+      "$description": "A warning background."
+    },
+    "danger": {
+      "$value": "{palette.red.700}",
+      "$description": "Error text and destructive actions."
+    },
+    "danger-subtle": {
+      "$value": "{palette.red.50}",
+      "$description": "An error background, such as an inline alert."
+    }
+  }
+}

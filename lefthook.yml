@@ -1,0 +1,30 @@
+# Git hooks, installed by `pnpm install` through the root "prepare" script.
+pre-commit:
+  parallel: true
+  jobs:
+    # Only prettier and ruff rewrite files, and they never touch the same file types.
+    - name: prettier
+      glob: "*.{js,mjs,cjs,ts,tsx,json,css,md,yml,yaml}"
+      run: pnpm exec prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+    - name: eslint
+      root: "apps/web/"
+      glob: "*.{js,mjs,ts,tsx}"
+      run: pnpm exec eslint {staged_files}
+    # Ruff runs inside each app, so import sorting sees that app's own package as
+    # first-party (from the repo root, `api` and `donna` look third-party).
+    - name: ruff-api
+      root: "apps/api/"
+      glob: "*.py"
+      run: uv run ruff check --fix {staged_files} && uv run ruff format {staged_files}
+      stage_fixed: true
+    - name: ruff-cli
+      root: "apps/cli/"
+      glob: "*.py"
+      run: uv run ruff check --fix {staged_files} && uv run ruff format {staged_files}
+      stage_fixed: true
+
+commit-msg:
+  jobs:
+    - name: conventional-commit
+      run: scripts/check-commit-msg.sh {1}

@@ -1,0 +1,32 @@
+{
+  "name": "donna",
+  "private": true,
+  "scripts": {
+    "prepare": "lefthook install",
+    "dev": "pnpm --recursive --parallel dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api dev",
+    "dev:desktop": "pnpm --filter desktop tauri dev",
+    "donna": "uv run --project apps/cli donna",
+    "build": "pnpm --recursive --if-present build",
+    "build:desktop": "pnpm --filter desktop tauri build",
+    "lint": "prettier --check . && pnpm --recursive --if-present lint",
+    "format": "prettier --write . && pnpm --recursive --if-present format",
+    "typecheck": "pnpm --recursive --if-present typecheck",
+    "test": "pnpm --recursive --if-present test",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:status": "supabase status",
+    "db:reset": "supabase db reset",
+    "db:migration": "supabase migration new"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.7.0",
+  "devDependencies": {
+    "lefthook": "2.2.2",
+    "prettier": "3.9.10",
+    "supabase": "2.122.0"
+  }
+}

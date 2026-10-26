@@ -1,0 +1,14 @@
+# `doppler setup --no-interactive` from the repo root binds each app folder to the
+# donna project's dev config. This file holds names only, never secrets. prd (production,
+# what main deploys) is used explicitly: `doppler run --config prd -- <cmd>`.
+#
+# donna uses a PERSONAL Doppler workplace. Log in with a scoped token first, so an employer
+# login at the default scope never applies here:
+#   doppler login --scope ~/Private --yes
+setup:
+  - project: donna
+    config: dev
+    path: apps/api
+  - project: donna
+    config: dev
+    path: apps/web

@@ -1,0 +1,132 @@
+name: Desktop
+
+# Builds the Tauri desktop app for macOS (Apple Silicon), Windows and Linux.
+# - Called by the Release workflow with a tag: built against the production API
+#   (NEXT_PUBLIC_API_URL from Doppler prd) and uploaded to that GitHub Release. If prd has
+#   no NEXT_PUBLIC_API_URL yet, it skips with a warning rather than ship a localhost build.
+# - Run by hand: a test build (production API if set, otherwise http://localhost:8000),
+#   kept 7 days as workflow artifacts, never released.
+# PRs don't run it, to save CI minutes (macOS counts 10x): test desktop changes locally.
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Actions are pinned to commit SHAs; Renovate updates the SHA and version comment together.
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS, Apple Silicon
+            runner: macos-latest
+            target: aarch64-apple-darwin
+          - name: Windows
+            runner: windows-latest
+            target: x86_64-pc-windows-msvc
+          - name: Linux
+            runner: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    env:
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: dopplerhq/cli-action@4819d808ab99e5cde19a0637a16536a4038fad73 # v4
+
+      - name: Resolve the API URL to build against
+        id: api
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN_PRD }}
+        run: |
+          url=$(doppler secrets get NEXT_PUBLIC_API_URL --plain 2>/dev/null || true)
+          if [ -z "$url" ]; then
+            if [ -n "$RELEASE_TAG" ]; then
+              echo "::warning::Doppler prd has no NEXT_PUBLIC_API_URL, so $RELEASE_TAG gets no desktop installers. Set it, then run the Release workflow by hand with this tag."
+              echo "build=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            url=http://localhost:8000
+            echo "::notice::Test build against $url (Doppler prd has no NEXT_PUBLIC_API_URL yet)."
+          fi
+          origin=$(printf '%s' "$url" | sed -E 's#^([a-z]+://[^/]+).*#\1#')
+          {
+            echo "url=$url"
+            echo "origin=$origin"
+            echo "build=true"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Install Linux build dependencies
+        if: steps.api.outputs.build == 'true' && runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        if: steps.api.outputs.build == 'true'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.api.outputs.build == 'true'
+        with:
+          node-version: 26
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        if: steps.api.outputs.build == 'true'
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        if: steps.api.outputs.build == 'true'
+        with:
+          workspaces: apps/desktop/src-tauri -> target
+
+      - name: Install the web and desktop dependencies
+        if: steps.api.outputs.build == 'true'
+        run: pnpm install --frozen-lockfile --filter web --filter desktop
+      # Built directly (not through the app's build script, whose Doppler wrapper is a bash
+      # script that Windows' cmd.exe can't run), with the API URL inlined.
+      - name: Build the web export
+        if: steps.api.outputs.build == 'true'
+        env:
+          NEXT_PUBLIC_API_URL: ${{ steps.api.outputs.url }}
+        run: pnpm --filter web exec next build
+      - name: Point the CSP at this API and skip Tauri's web rebuild
+        if: steps.api.outputs.build == 'true'
+        run: |
+          cat > apps/desktop/src-tauri/tauri.ci.conf.json <<EOF
+          {
+            "build": { "beforeBuildCommand": null },
+            "app": { "security": { "csp": { "connect-src": "'self' ${{ steps.api.outputs.origin }}" } } }
+          }
+          EOF
+
+      - uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # action-v1.0.0
+        if: steps.api.outputs.build == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/desktop
+          tauriScript: pnpm tauri
+          args: --target ${{ matrix.target }} --config src-tauri/tauri.ci.conf.json
+          # Set only for releases: upload the installers to that tag's GitHub Release.
+          tagName: ${{ inputs.tag }}
+
+      - name: Keep the installers as a workflow artifact (test builds)
+        if: steps.api.outputs.build == 'true' && !inputs.tag
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: donna-desktop-${{ matrix.target }}
+          path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/
+          retention-days: 7

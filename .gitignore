@@ -1,0 +1,31 @@
+# Repo-wide ignores. Apps add their own .gitignore only for tool-specific output
+# (for example apps/web for Next.js); the Python and env-file rules for every app live here.
+# apps/web's generated .gitignore repeats the env rule, so it carries its own !.env.example.
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+
+# Node
+node_modules/
+.pnpm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Env files: commit .env.example, never real values
+.env
+.env.*
+!.env.example
+
+# Claude Code per-user settings
+.claude/settings.local.json

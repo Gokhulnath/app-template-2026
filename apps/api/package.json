@@ -1,0 +1,13 @@
+{
+  "name": "api",
+  "private": true,
+  "scripts": {
+    "postinstall": "uv python install 3.14 --quiet && uv sync",
+    "dev": "CORS_ALLOW_LOCALHOST=true ../../scripts/with-doppler.sh uv run fastapi dev",
+    "start": "../../scripts/with-doppler.sh uv run fastapi run",
+    "lint": "uv run ruff check && uv run ruff format --check",
+    "format": "uv run ruff check --fix && uv run ruff format",
+    "test": "uv run pytest",
+    "typecheck": "uv run pyright"
+  }
+}

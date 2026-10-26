@@ -1,0 +1,4 @@
+# Slug of the Doppler workplace that holds this repo's secrets (`doppler me --json`,
+# workplace.slug). scripts/with-doppler.sh refuses to inject secrets from any other
+# workplace, such as an employer login at the default scope.
+aa5ccdcacc63d357b501

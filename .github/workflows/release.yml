@@ -1,0 +1,77 @@
+name: Release
+
+# On every push to main, release-please keeps one "release PR" open: the next version
+# (from Conventional Commits) bumped in every app, plus CHANGELOG.md. Merging that PR tags
+# vX.Y.Z, publishes the GitHub Release with its notes, and builds the desktop installers
+# (desktop.yml) into it. Run by hand with a tag to (re)build the installers for that
+# release, e.g. once Doppler prd has a production NEXT_PUBLIC_API_URL.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build desktop installers for, e.g. v0.2.0
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+# Actions are pinned to commit SHAs; Renovate updates the SHA and version comment together.
+jobs:
+  # A template repository (Gokhulnath/app-template-2026) never cuts releases of its own;
+  # the apps created from it do.
+  release-please:
+    if: github.event_name == 'push' && !github.event.repository.is_template
+    runs-on: ubuntu-24.04
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      prs_created: ${{ steps.release.outputs.prs_created }}
+      pr: ${{ steps.release.outputs.pr }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # release-please bumps each project's version, but uv.lock and Cargo.lock record those
+  # versions too; refresh them on the release PR so CI's lockfile check keeps passing.
+  lockfiles:
+    needs: release-please
+    if: needs.release-please.outputs.prs_created == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ fromJSON(needs.release-please.outputs.pr).headBranchName }}
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+      - run: uv python install 3.14
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+      - name: Refresh the lockfiles for the new version
+        run: |
+          uv lock --project apps/api
+          uv lock --project apps/cli
+          cargo update --workspace --manifest-path apps/desktop/src-tauri/Cargo.toml
+      - name: Commit them to the release PR
+        run: |
+          if git diff --quiet; then echo "Lockfiles already current."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore(main): refresh lockfiles for the release"
+          git push
+
+  desktop:
+    needs: release-please
+    if: ${{ always() && (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch') }}
+    uses: ./.github/workflows/desktop.yml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
+    secrets: inherit

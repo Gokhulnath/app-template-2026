@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API (FastAPI)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["api.main:app", "--port", "8000"],
+      "cwd": "${workspaceFolder}/apps/api",
+      "python": "${workspaceFolder}/apps/api/.venv/bin/python",
+      "env": { "CORS_ALLOW_LOCALHOST": "true" },
+      "justMyCode": true
+    },
+    {
+      "name": "Web (Next.js dev server)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm dev:web",
+      "cwd": "${workspaceFolder}"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "API + Web",
+      "configurations": ["API (FastAPI)", "Web (Next.js dev server)"]
+    }
+  ]
+}

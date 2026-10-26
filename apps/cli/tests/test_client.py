@@ -1,7 +1,10 @@
+from importlib import resources
+from pathlib import Path
+
 import httpx
 import pytest
 
-from myapp.client import HealthReport, fetch_health
+from myapp.client import HealthReport, fetch_health, release_api_url
 
 API = "http://api.test"
 
@@ -45,3 +48,17 @@ async def test_unreachable() -> None:
 
     report = await fetch_health(API, httpx.MockTransport(refuse))
     assert report == HealthReport(API, "unreachable")
+
+
+def test_no_release_url_in_a_checkout() -> None:
+    assert release_api_url() is None
+
+
+def test_release_url_from_the_build() -> None:
+    baked = resources.files("myapp").joinpath("release_api_url.txt")
+    path = Path(str(baked))
+    path.write_text("https://api.example.test\n")
+    try:
+        assert release_api_url() == "https://api.example.test"
+    finally:
+        path.unlink()

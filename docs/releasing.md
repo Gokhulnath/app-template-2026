@@ -9,8 +9,9 @@ the same API.
 1. Every feature PR merges into `main` as Conventional Commits.
 2. On each push to `main`, **release-please** (`.github/workflows/release.yml`) keeps one
    PR open, titled `chore(main): release X.Y.Z`. It bumps the version in every app and
-   updates `CHANGELOG.md`. A follow-up job refreshes `uv.lock` and `Cargo.lock` on that PR,
-   because they record the apps' own versions.
+   updates `CHANGELOG.md`. A follow-up job, "Tidy the release PR", refreshes `uv.lock` and
+   `Cargo.lock` (they record the apps' own versions) and runs the repo's Prettier on the
+   files release-please writes, so `main`'s CI stays green once the PR merges.
 3. **You decide when to release** by merging that PR, once `main` has enough features and
    is stable. Merging it:
    - tags `vX.Y.Z` and publishes a GitHub Release with the notes

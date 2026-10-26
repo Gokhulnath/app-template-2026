@@ -1645,3 +1645,21 @@ What changed:
   - the skill zip holds only `myapp/SKILL.md`
 - Not verified: installing the `.mcpb` in Claude Desktop itself (a GUI step), and whether
   Claude Desktop provides `uv` or needs it installed. The install steps say to install it.
+
+## Keep the release PR Prettier-clean
+
+Commit: `ci: format the files release-please writes on the release PR`
+
+- Ported from donna (its step 66), where it was found before the first release. Its release
+  PR rewrote `apps/cli/mcpb/manifest.json` with every array expanded, and wrote
+  `CHANGELOG.md` with `*` bullets and double blank lines. `prettier --check` failed on both,
+  and on `.release-please-manifest.json`, so merging the PR would have turned `main`'s CI
+  red.
+- `release.yml`: the `lockfiles` job is now `tidy` ("Tidy the release PR"). After the
+  lockfile refresh, it runs the repo's own Prettier version (read from `package.json`) on
+  `CHANGELOG.md`, `.release-please-manifest.json` and every JSON file in
+  `release-please-config.json`'s `extra-files`, then commits everything as
+  `chore(main): refresh lockfiles and formatting for the release`.
+- Verified on donna's release PR branch: the step reformatted those three files, left
+  `tauri.conf.json` and `apps/web/package.json` unchanged, and `prettier --check` passed on
+  all five.

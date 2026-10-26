@@ -1,0 +1,21 @@
+{
+  "size": {
+    "container": {
+      "$type": "dimension",
+      "$description": "Widths content is capped at (Tailwind's max-w-md and so on), in rem so they scale with text.",
+      "xs": { "$value": { "value": 20, "unit": "rem" } },
+      "sm": { "$value": { "value": 24, "unit": "rem" } },
+      "md": {
+        "$value": { "value": 28, "unit": "rem" },
+        "$description": "A card or a form."
+      },
+      "lg": { "$value": { "value": 32, "unit": "rem" } },
+      "xl": { "$value": { "value": 36, "unit": "rem" } },
+      "2xl": { "$value": { "value": 42, "unit": "rem" } },
+      "3xl": {
+        "$value": { "value": 48, "unit": "rem" },
+        "$description": "A page of reading text."
+      }
+    }
+  }
+}

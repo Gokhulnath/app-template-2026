@@ -1,0 +1,72 @@
+{
+  "space": {
+    "$type": "dimension",
+    "$description": "A 4px (0.25rem) grid, in rem so it scales with text. Tailwind's spacing utilities use the unit (p-1 is 0.25rem, p-4 is 1rem); other platforms use the named steps.",
+    "unit": {
+      "$value": {
+        "value": 0.25,
+        "unit": "rem"
+      }
+    },
+    "1": {
+      "$value": {
+        "value": 0.25,
+        "unit": "rem"
+      }
+    },
+    "2": {
+      "$value": {
+        "value": 0.5,
+        "unit": "rem"
+      }
+    },
+    "3": {
+      "$value": {
+        "value": 0.75,
+        "unit": "rem"
+      }
+    },
+    "4": {
+      "$value": {
+        "value": 1.0,
+        "unit": "rem"
+      }
+    },
+    "5": {
+      "$value": {
+        "value": 1.25,
+        "unit": "rem"
+      }
+    },
+    "6": {
+      "$value": {
+        "value": 1.5,
+        "unit": "rem"
+      }
+    },
+    "8": {
+      "$value": {
+        "value": 2.0,
+        "unit": "rem"
+      }
+    },
+    "10": {
+      "$value": {
+        "value": 2.5,
+        "unit": "rem"
+      }
+    },
+    "12": {
+      "$value": {
+        "value": 3.0,
+        "unit": "rem"
+      }
+    },
+    "16": {
+      "$value": {
+        "value": 4.0,
+        "unit": "rem"
+      }
+    }
+  }
+}

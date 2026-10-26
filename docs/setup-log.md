@@ -1714,3 +1714,51 @@ Commit: `chore(repo): ignore Claude Code's agent worktrees`
 Ported from donna (its step 70). Agents working in parallel get their own git worktrees
 under `.claude/worktrees/`, each a full copy of the repo. `.gitignore` now lists the folder,
 so a stray `git add` can't pick it up, and Prettier's `--check .` skips the copies.
+
+## Add the design system: tokens, components and Storybook
+
+Commits: `feat(tokens): add the design tokens package` through
+`build(ui): lint the design system and run its stories in CI`, then
+`fix(desktop): install web's workspace packages for desktop builds`
+
+Ported from donna (its step 71). Every UI now draws from one set of tokens and one
+component library, so the web app, the desktop app and the terminal UI can't drift apart.
+See `docs/design-system.md`.
+
+- **Tokens** (`packages/tokens`): `pnpm-workspace.yaml` lists `packages/*` beside `apps/*`.
+  - `pnpm --filter @myapp/tokens add -D -E style-dictionary@5.6.1`
+  - `src/*.json` in the DTCG format: a palette, semantic light and dark colors, type, space
+    and shape. `build.mjs` writes `dist/tokens.css`, `dist/theme.css` (a Tailwind v4
+    `@theme` that clears Tailwind's own colors, fonts, sizes, radii and shadows),
+    `dist/tokens.ts` and the TUI's `apps/cli/src/myapp/theme.json`. Style Dictionary 5.6
+    doesn't format DTCG durations for CSS, so `build.mjs` registers a `duration/css`
+    transform.
+  - The package's `lint` script is `node build.mjs --check`, so `pnpm lint` fails when a
+    generated file is out of date. `pnpm tokens:build` regenerates them.
+- **Components** (`packages/ui`):
+  - `pnpm --filter @myapp/ui add -E @base-ui/react@1.9.0 class-variance-authority@0.7.1 clsx@2.1.1 tailwind-merge@3.7.0 "@myapp/tokens@workspace:*"`
+  - `pnpm --filter @myapp/ui add -D -E storybook@10.6.1 @storybook/react-vite@10.6.1 @storybook/addon-docs@10.6.1 @storybook/addon-a11y@10.6.1 @storybook/addon-themes@10.6.1 @storybook/addon-vitest@10.6.1 vitest@5.0.3 @vitest/browser-playwright@5.0.3 playwright@1.64.0 vite@8.3.4 tailwindcss@4.3.3 @tailwindcss/vite@4.3.3 geist@1.7.2 typescript@5.9.3 react@19.3.0 react-dom@19.3.0 @types/react@19.3.0 @types/react-dom@19.3.0`
+  - `pnpm --filter @myapp/ui add -D -E eslint@9.39.5 @eslint/js@9.39.5 typescript-eslint@8.72.0 eslint-plugin-react-hooks@7.1.1 eslint-plugin-storybook@10.6.1 eslint-config-prettier@10.1.8`
+    (the versions `apps/web` already resolves)
+  - `pnpm --filter @myapp/ui exec playwright install chromium`, for the Storybook tests
+  - `pnpm-workspace.yaml`: `allowBuilds.esbuild: true`, since Vite and Vitest need
+    esbuild's platform binary.
+  - The Geist variable fonts and their OFL license are copied from the `geist` package into
+    `src/fonts/`, so `styles.css` serves them and no page loads fonts from another origin.
+  - The package ships TypeScript source; `apps/web/next.config.ts` lists it and
+    `@myapp/tokens` in `transpilePackages`.
+- **Web app**: `pnpm --filter web add "@myapp/ui@workspace:*"`. `globals.css` imports
+  `@myapp/ui/styles.css`, `next/font` is gone, and the page is built from the components.
+  Behavior and every `data-testid` are unchanged.
+- **Terminal UI**: `pnpm tokens:build` writes `apps/cli/src/myapp/theme.json`; `tui.py`
+  registers it as the `myapp-dark` and `myapp-light` Textual themes and colors the status
+  line with the theme's success, warning and error instead of fixed names.
+- **Root scripts**: `storybook`, `build:storybook`, `tokens:build`.
+- **CI**: a step runs `pnpm --filter @myapp/ui exec playwright install --with-deps chromium`
+  before `pnpm test`, which now runs every story in Chromium with an axe check.
+- **Desktop builds**: `desktop.yml` and `scripts/build-desktop-linux.sh` installed only
+  `web` and `desktop` (`--filter web --filter desktop`), so the web build couldn't find
+  `@myapp/ui`'s dependencies. They now use `--filter "web..."`, which adds the workspace
+  packages `web` depends on.
+- Example content in a couple of `packages/ui` stories (a status card, a labeled field) was
+  reworded generically: the template ships no feature those examples were demoing.

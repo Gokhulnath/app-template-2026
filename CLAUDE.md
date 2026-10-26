@@ -34,6 +34,19 @@ as much as what it does.
   actions and no route handlers. Data comes from the API through `src/lib/api.ts`.
 - New config values get a commented line in the app's `.env.example`.
 
+## Design system
+
+- Every UI comes from the design system: `packages/tokens` (colors, type, spacing, radius,
+  shadows, motion) and `packages/ui` (React components on Base UI, each with Storybook
+  stories). See `docs/design-system.md`.
+- Apps compose `@myapp/ui` components. They don't set their own colors, font sizes, radii
+  or shadows, and can't: Tailwind's defaults are cleared, so only token utilities exist.
+  Sizing and placement (`w-full`, `max-w-md`, page padding) are fine.
+- A new need gets a variant or component in `packages/ui`, with a story, before an app uses
+  it.
+- To change a token, edit `packages/tokens/src/` and run `pnpm tokens:build`; commit the
+  generated files with it.
+
 ## Tests
 
 Tests protect behavior that people and clients rely on. They aren't a receipt for every
@@ -46,7 +59,8 @@ change: models tend to add a test per tiny edit, and the pile costs more than it
 - Each behavior has one owner, tested at the strongest boundary. The API contract lives in
   `apps/api/tests`, against the real database. Each client tests its own job (arguments,
   rendering, exit codes, how it shows errors) against a fake API, and doesn't re-test the
-  API's rules.
+  API's rules. A component's behavior and accessibility live in its Storybook stories in
+  `packages/ui`, which `pnpm test` runs in a headless browser.
 - No tests of implementation details: call shapes, private helpers, mocks that return the
   very value asserted, copied constants, or hooks added to production code only for tests.
   A refactor that keeps behavior shouldn't break a test.
@@ -74,7 +88,8 @@ private (secrets, cloud identifiers, local paths). Product features stay here.
 ## Commits
 
 - Conventional Commits: `type(scope): subject`, imperative, at most 72 characters.
-  Scopes: `repo`, `web`, `api`, `db`, `cli`, `mcp`, `skill`, `desktop`, `docs`, `ci`.
+  Scopes: `repo`, `web`, `api`, `db`, `cli`, `mcp`, `skill`, `desktop`, `ui`, `tokens`,
+  `docs`, `ci`.
 - One logical change per commit, and each commit leaves the repo working. Stage explicit
   paths (`git add <paths>`), not `git add -A`, so nothing unrelated slips in.
 - When a generator creates files (create-next-app, `uv init`, `tauri init`), commit its

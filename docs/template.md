@@ -6,8 +6,8 @@ Skill.
 
 The starter is its own repo,
 **[`Gokhulnath/app-template-2026`](https://github.com/Gokhulnath/app-template-2026)**: a
-GitHub template repository holding donna's code with the project renamed to `myapp`. The
-template is now maintained on its own, through PRs (see
+public, MIT-licensed GitHub template repository holding donna's code with the project
+renamed to `myapp`. The template is now maintained on its own, through PRs (see
 [Changing the template](#changing-the-template)).
 
 There are two ways to start a new project:
@@ -84,6 +84,7 @@ Tested against a clone: renaming to `acme` left `donna` only in the setup log, a
 | CI secret for release builds            | `doppler configs tokens create github-actions-release --project $NEW --config prd --access read --plain \| gh secret set DOPPLER_TOKEN_PRD --repo <owner>/$NEW`                                                                                                                            |
 | Releases                                | allow Actions to open PRs: `gh api -X PUT repos/<owner>/$NEW/actions/permissions/workflow --input - <<<'{"default_workflow_permissions":"read","can_approve_pull_request_reviews":true}'`; the first release PR collects the whole history                                                 |
 | Renovate                                | install the GitHub App on the new repo                                                                                                                                                                                                                                                     |
+| License                                 | the template is MIT (`LICENSE`). For a private product, delete `LICENSE` or put your own terms in it                                                                                                                                                                                       |
 
 ### Running two projects from the template side by side
 
@@ -144,6 +145,9 @@ gh pr merge --rebase                       # once CI passes; keep the branch
   git fetch donna && git cherry-pick <sha>
   ```
 
+- The template is public. Before porting a change, check that it carries no secrets, cloud
+  identifiers or private notes. donna's own setup log has some, which the copy made
+  generic.
 - Projects already created from the template don't receive its later changes. Port the
   ones you want the same way.
 
@@ -161,4 +165,4 @@ Each of these is worth doing once its trigger happens, not before:
 | CI path filters; a Rust check in CI; cloud migration pushes               | slow CI; Rust code in the shell; Supabase secrets in Doppler   |
 | Pagination, rate limiting                                                 | the first list endpoint; the first external caller             |
 | mise/asdf, devcontainers                                                  | several Node/Python versions per machine; a second contributor |
-| Changesets/release-please, CHANGELOG, CODEOWNERS, LICENSE                 | distributed builds; a second contributor; going public         |
+| CODEOWNERS                                                                | a second contributor                                           |

@@ -62,7 +62,8 @@ git ls-files -z --cached --others --exclude-standard |
       tar -xf - -C /workspace --no-same-owner --warning=no-unknown-keyword
       git init -q  # the root prepare script installs git hooks, which needs a repo
       pnpm config set store-dir /pnpm-store
-      pnpm install --frozen-lockfile --filter web --filter desktop
+      # web... also installs the workspace packages web is built from (packages/*).
+      pnpm install --frozen-lockfile --filter "web..." --filter desktop
       pnpm --filter desktop tauri build
       cp apps/desktop/src-tauri/target/release/bundle/deb/*.deb \
         apps/desktop/src-tauri/target/release/bundle/rpm/*.rpm \

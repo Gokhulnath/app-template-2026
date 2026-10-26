@@ -92,9 +92,10 @@ jobs:
         with:
           workspaces: apps/desktop/src-tauri -> target
 
+      # `web...` also installs the workspace packages web is built from (@myapp/ui, @myapp/tokens).
       - name: Install the web and desktop dependencies
         if: steps.api.outputs.build == 'true'
-        run: pnpm install --frozen-lockfile --filter web --filter desktop
+        run: pnpm install --frozen-lockfile --filter "web..." --filter desktop
       # Built directly (not through the app's build script, whose Doppler wrapper is a bash
       # script that Windows' cmd.exe can't run), with the API URL inlined.
       - name: Build the web export

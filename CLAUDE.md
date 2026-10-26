@@ -16,10 +16,12 @@ as much as what it does.
 ## Working in the apps
 
 - Run everything from the root with pnpm: `pnpm dev`, `pnpm lint`, `pnpm typecheck`,
-  `pnpm test`, `pnpm build`, `pnpm format`. Before calling work done, run `pnpm lint`,
-  `pnpm typecheck` and `pnpm test` with the local database up (`pnpm db:start`); CI runs
-  the same with `MYAPP_REQUIRE_DB=1`. Install only from the root (one `pnpm-lock.yaml`),
-  and never add a `pnpm-workspace.yaml` or lockfile inside an app.
+  `pnpm test`, `pnpm build`, `pnpm format`. Install only from the root (one
+  `pnpm-lock.yaml`), and never add a `pnpm-workspace.yaml` or lockfile inside an app.
+- Before merging a PR, run `pnpm verify`: lint, type-check, tests against the local
+  database (`MYAPP_REQUIRE_DB=1`, as in CI), the builds, and the macOS app and Linux bundles
+  (in Docker). CI runs the same except the desktop builds, which run only for releases.
+  `pnpm verify --no-desktop` skips them for a change that can't affect the desktop app.
 - Python apps (`apps/api`, `apps/cli`): uv only (`uv add`, `uv run`), never `pip`.
   `.python-version` is `3.14+gil` on purpose: plain `3.14` lets uv pick its free-threaded
   build. `+gil` never downloads, so each app's postinstall runs `uv python install 3.14`
@@ -38,6 +40,14 @@ Whenever you change the repo's structure, tooling, dependencies or conventions, 
 exact commands and the reason to `docs/setup-log.md` in the same commit. That covers new
 apps or packages, new tools, config changes and version bumps. Ordinary feature work
 doesn't need a log entry.
+
+## Keep the template current
+
+`Gokhulnath/app-template-2026` is the public starter new apps are created from. When a
+change touches the repo's setup rather than the product (tooling, CI and release
+workflows, scripts, Docker files, conventions, this file, `docs/template.md`), make the
+same change there through its own PR: `myapp` names, its own setup-log entry, and nothing
+private (secrets, cloud identifiers, local paths). Product features stay here.
 
 ## Commits
 

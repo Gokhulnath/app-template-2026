@@ -56,13 +56,18 @@ Doppler **prd** (through the read-only `DOPPLER_TOKEN_PRD` secret) and limits th
 
 ## Testing desktop changes before a release
 
-PRs don't build installers, to save CI minutes. Test a desktop change locally on its PR:
+PRs don't build installers, to save CI minutes. Check a PR locally before merging it:
 
+- `pnpm verify` runs the CI checks plus the desktop builds CI skips: the macOS app and the
+  Linux bundles (`.deb`, `.rpm`, `.AppImage`), built in Docker. On an Apple Silicon Mac
+  those are arm64 builds. They prove the app compiles and bundles on Linux; the x86_64
+  files people download come from the release workflow.
+- `pnpm build:desktop:linux --amd64` builds x86_64 Linux bundles under emulation (slower;
+  turn on Docker Desktop's "Use Rosetta for x86_64/amd64 emulation" setting first).
 - `pnpm dev:desktop` runs the app; start the API alongside it with `pnpm dev:api`.
-- `pnpm build:desktop` builds an installer for your own OS.
 
-If a change needs checking on all three platforms before a release, run the Desktop
-workflow by hand on its branch:
+Windows has no local build. The release builds it, and if a change needs checking on
+Windows before then, run the Desktop workflow by hand on its branch:
 `gh workflow run desktop.yml --repo Gokhulnath/myapp --ref <branch>`. It builds against
 localhost while prd has no URL, keeps the bundles 7 days as downloadable workflow artifacts
 and never attaches them to a release.

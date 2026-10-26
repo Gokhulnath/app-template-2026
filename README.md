@@ -4,20 +4,23 @@ One FastAPI backend, many thin clients: a web app, a desktop app, a CLI, an MCP 
 an Agent Skill, with iOS and Android to come. All logic and data live in the API. See
 [`docs/architecture.md`](docs/architecture.md).
 
-| Path           | What                                 | Stack                                                    | Dev URL                                      |
-| -------------- | ------------------------------------ | -------------------------------------------------------- | -------------------------------------------- |
-| `apps/web`     | Web app (UI only)                    | Next.js 16.4 static export · React 19.3 · Tailwind CSS 4 | http://localhost:3000                        |
-| `apps/api`     | API: all logic and data              | FastAPI 0.162 · Python 3.14 · uv                         | http://localhost:8000 (reference at `/docs`) |
-| `apps/desktop` | Desktop app (wraps the web export)   | Tauri 2.12 · Rust                                        | `pnpm dev:desktop`                           |
-| `apps/cli`     | `myapp` CLI, TUI and MCP server      | Typer · Textual · FastMCP · Python 3.14 · uv             | `pnpm myapp`                                 |
-| `supabase/`    | Database: migrations and local stack | Supabase CLI 2.122 · Postgres 17                         | `pnpm db:start`                              |
-| `skills/myapp` | Agent Skill                          | Agent Skills (`SKILL.md`)                                | —                                            |
+| Path              | What                                 | Stack                                                    | Dev URL                                      |
+| ----------------- | ------------------------------------ | -------------------------------------------------------- | -------------------------------------------- |
+| `apps/web`        | Web app (UI only)                    | Next.js 16.4 static export · React 19.3 · Tailwind CSS 4 | http://localhost:3000                        |
+| `packages/ui`     | Design system components             | Base UI 1.9 · Tailwind CSS 4 · Storybook 10.6            | `pnpm storybook` (http://localhost:6006)     |
+| `packages/tokens` | Design tokens: colors, type, spacing | DTCG JSON · Style Dictionary 5.6                         | `pnpm tokens:build`                          |
+| `apps/api`        | API: all logic and data              | FastAPI 0.162 · Python 3.14 · uv                         | http://localhost:8000 (reference at `/docs`) |
+| `apps/desktop`    | Desktop app (wraps the web export)   | Tauri 2.12 · Rust                                        | `pnpm dev:desktop`                           |
+| `apps/cli`        | `myapp` CLI, TUI and MCP server      | Typer · Textual · FastMCP · Python 3.14 · uv             | `pnpm myapp`                                 |
+| `supabase/`       | Database: migrations and local stack | Supabase CLI 2.122 · Postgres 17                         | `pnpm db:start`                              |
+| `skills/myapp`    | Agent Skill                          | Agent Skills (`SKILL.md`)                                | —                                            |
 
 ## Prerequisites
 
 Node.js ≥ 24 (built with 26.7), pnpm 11.7 (the root `packageManager` field pins it),
 uv ≥ 0.12 (it installs Python 3.14 if needed), and Docker for the local database.
-Doppler is optional (see `docs/architecture.md`).
+Doppler is optional (see `docs/architecture.md`). The design system's tests need a headless
+Chromium: `pnpm --filter @myapp/ui exec playwright install chromium`, once per machine.
 
 ## Quickstart
 
@@ -40,11 +43,13 @@ API.
 | `pnpm dev:desktop` / `build:desktop`                   | the Tauri desktop app (needs Rust)                                              |
 | `pnpm build:desktop:linux`                             | the desktop app's Linux bundles, built in Docker (`--amd64` for x86_64)         |
 | `pnpm build:packages`                                  | a release's CLI, MCP bundle and Skill packages, into `dist/release/`            |
+| `pnpm storybook` / `build:storybook`                   | the design system's Storybook (port 6006) / its static build                    |
+| `pnpm tokens:build`                                    | regenerate the design tokens' CSS, Tailwind theme, TypeScript and TUI themes    |
 | `pnpm build`                                           | static export of the web app into `apps/web/out/`                               |
-| `pnpm lint`                                            | Prettier check, ESLint (web), `ruff check` + `ruff format --check` (api, cli)   |
-| `pnpm typecheck`                                       | `tsc` (web), pyright (api, cli)                                                 |
+| `pnpm lint`                                            | Prettier, ESLint (web, ui), ruff (api, cli), and that the tokens are up to date |
+| `pnpm typecheck`                                       | `tsc` (web, ui), pyright (api, cli)                                             |
 | `pnpm format`                                          | Prettier, plus ruff fix and format                                              |
-| `pnpm test`                                            | pytest with coverage and its floor (api, cli)                                   |
+| `pnpm test`                                            | pytest with coverage and its floor (api, cli), every Storybook story (ui)       |
 | `pnpm verify`                                          | the pre-merge check: lint, types, tests, builds, macOS and Linux desktop builds |
 | `pnpm myapp …`                                         | the `myapp` CLI, e.g. `pnpm myapp status`                                       |
 | `pnpm db:start` / `db:stop` / `db:reset` / `db:status` | local Supabase stack                                                            |

@@ -2,9 +2,10 @@ name: Release
 
 # On every push to main, release-please keeps one "release PR" open: the next version
 # (from Conventional Commits) bumped in every app, plus CHANGELOG.md. Merging that PR tags
-# vX.Y.Z, publishes the GitHub Release with its notes, and builds the desktop installers
-# (desktop.yml) into it. Run by hand with a tag to (re)build the installers for that
-# release, e.g. once Doppler prd has a production NEXT_PUBLIC_API_URL.
+# vX.Y.Z, publishes the GitHub Release with its notes, and builds into it the desktop
+# installers (desktop.yml) and the other packages: the CLI and MCP server, the MCP bundle and
+# the Agent Skill (packages.yml). Run by hand with a tag to (re)build both for that release,
+# e.g. once Doppler prd has a production NEXT_PUBLIC_API_URL.
 
 on:
   push:
@@ -12,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing release tag to build desktop installers for, e.g. v0.2.0
+        description: Existing release tag to build the installers and packages for, e.g. v0.2.0
         required: true
 
 permissions:
@@ -72,6 +73,14 @@ jobs:
     needs: release-please
     if: ${{ always() && (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch') }}
     uses: ./.github/workflows/desktop.yml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
+    secrets: inherit
+
+  packages:
+    needs: release-please
+    if: ${{ always() && (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch') }}
+    uses: ./.github/workflows/packages.yml
     with:
       tag: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
     secrets: inherit

@@ -23,6 +23,20 @@ pipes and agent shells it prints help instead of waiting on a UI nobody can see.
 From this folder: `uv run myapp status`. To put `myapp` on your `PATH`:
 `uv tool install --editable apps/cli` (run from the repo root).
 
+## Install from a release
+
+Every release attaches the CLI as a wheel, the MCP server as a Claude Desktop bundle
+(`.mcpb`) and the Agent Skill as a zip; its notes list the exact commands. In short:
+
+```bash
+gh release download vX.Y.Z --repo Gokhulnath/myapp --pattern 'myapp-X.Y.Z-py3-none-any.whl'
+uv tool install --force ./myapp-X.Y.Z-py3-none-any.whl   # fetches Python 3.14 if needed
+claude mcp add --scope user myapp -- myapp mcp            # register the MCP server
+```
+
+`scripts/build-packages.sh` (`pnpm build:packages`) builds the same files locally into
+`dist/release/`. See `docs/releasing.md` for what each one is.
+
 ## MCP server (for AI agents)
 
 `myapp mcp` runs an MCP server over stdio. Its tools are hand-written per task (today
@@ -40,12 +54,12 @@ npx @modelcontextprotocol/inspector uv run --project apps/cli myapp mcp
 
 ## Conventions
 
-| Thing      | Rule                                                                         |
-| ---------- | ---------------------------------------------------------------------------- |
-| API URL    | `--api-url` flag, then `MYAPP_API_URL`, then `http://localhost:8000`         |
-| Output     | human-readable by default; `--json` for scripts and agents                   |
-| Exit codes | `0` healthy or succeeded, `1` not healthy or failed, `2` usage error (Typer) |
-| Logic      | none here: every command calls the API through `myapp.client`                |
+| Thing      | Rule                                                                                                               |
+| ---------- | ------------------------------------------------------------------------------------------------------------------ |
+| API URL    | `--api-url` flag, then `MYAPP_API_URL`, then the release's API (release builds only), then `http://localhost:8000` |
+| Output     | human-readable by default; `--json` for scripts and agents                                                         |
+| Exit codes | `0` healthy or succeeded, `1` not healthy or failed, `2` usage error (Typer)                                       |
+| Logic      | none here: every command calls the API through `myapp.client`                                                      |
 
 ## Develop
 

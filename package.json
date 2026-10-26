@@ -11,6 +11,7 @@
     "build": "pnpm --recursive --if-present build",
     "build:desktop": "pnpm --filter desktop tauri build",
     "build:desktop:linux": "scripts/build-desktop-linux.sh",
+    "build:packages": "scripts/build-packages.sh",
     "lint": "prettier --check . && pnpm --recursive --if-present lint",
     "format": "prettier --write . && pnpm --recursive --if-present format",
     "typecheck": "pnpm --recursive --if-present typecheck",

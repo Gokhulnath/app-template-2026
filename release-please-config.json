@@ -46,7 +46,12 @@
           "path": "apps/cli/pyproject.toml",
           "jsonpath": "$.project.version"
         },
-        { "type": "generic", "path": "apps/api/src/api/main.py" }
+        { "type": "generic", "path": "apps/api/src/api/main.py" },
+        {
+          "type": "json",
+          "path": "apps/cli/mcpb/manifest.json",
+          "jsonpath": "$.version"
+        }
       ]
     }
   }

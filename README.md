@@ -1,4 +1,4 @@
-# donna
+# myapp
 
 One FastAPI backend, many thin clients: a web app, a desktop app, a CLI, an MCP server and
 an Agent Skill, with iOS and Android to come. All logic and data live in the API. See
@@ -9,9 +9,9 @@ an Agent Skill, with iOS and Android to come. All logic and data live in the API
 | `apps/web`     | Web app (UI only)                    | Next.js 16.4 static export · React 19.3 · Tailwind CSS 4 | http://localhost:3000                        |
 | `apps/api`     | API: all logic and data              | FastAPI 0.162 · Python 3.14 · uv                         | http://localhost:8000 (reference at `/docs`) |
 | `apps/desktop` | Desktop app (wraps the web export)   | Tauri 2.12 · Rust                                        | `pnpm dev:desktop`                           |
-| `apps/cli`     | `donna` CLI, TUI and MCP server      | Typer · Textual · FastMCP · Python 3.14 · uv             | `pnpm donna`                                 |
+| `apps/cli`     | `myapp` CLI, TUI and MCP server      | Typer · Textual · FastMCP · Python 3.14 · uv             | `pnpm myapp`                                 |
 | `supabase/`    | Database: migrations and local stack | Supabase CLI 2.122 · Postgres 17                         | `pnpm db:start`                              |
-| `skills/donna` | Agent Skill                          | Agent Skills (`SKILL.md`)                                | —                                            |
+| `skills/myapp` | Agent Skill                          | Agent Skills (`SKILL.md`)                                | —                                            |
 
 ## Prerequisites
 
@@ -43,13 +43,13 @@ API.
 | `pnpm typecheck`                                       | `tsc` (web), pyright (api, cli)                                               |
 | `pnpm format`                                          | Prettier, plus ruff fix and format                                            |
 | `pnpm test`                                            | pytest (api, cli)                                                             |
-| `pnpm donna …`                                         | the `donna` CLI, e.g. `pnpm donna status`                                     |
+| `pnpm myapp …`                                         | the `myapp` CLI, e.g. `pnpm myapp status`                                     |
 | `pnpm db:start` / `db:stop` / `db:reset` / `db:status` | local Supabase stack                                                          |
 | `pnpm db:migration <name>`                             | new SQL migration in `supabase/migrations/`                                   |
 
 ## Docs
 
-- [`docs/surfaces.md`](docs/surfaces.md): using donna. For AI agents: Skill, MCP. For
+- [`docs/surfaces.md`](docs/surfaces.md): using myapp. For AI agents: Skill, MCP. For
   humans: CLI, API.
 - [`docs/architecture.md`](docs/architecture.md): how the pieces fit, and the rules they
   follow.

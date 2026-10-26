@@ -1,6 +1,6 @@
 # Releasing
 
-donna ships as one product with one version (`vX.Y.Z`). The API, web, desktop and CLI
+myapp ships as one product with one version (`vX.Y.Z`). The API, web, desktop and CLI
 release together, because the desktop app bundles the web build and every client targets
 the same API.
 
@@ -37,7 +37,7 @@ workflows for those, so the required CI check never appears on it. The PR only c
 version numbers, the changelog and lockfiles. Merge it with your admin bypass:
 
 ```bash
-gh pr merge <release-pr-number> --repo Gokhulnath/donna --rebase --admin
+gh pr merge <release-pr-number> --repo Gokhulnath/myapp --rebase --admin
 ```
 
 The merge is a push by you, so CI and the release run as normal.
@@ -52,7 +52,7 @@ Doppler **prd** (through the read-only `DOPPLER_TOKEN_PRD` secret) and limits th
   still gets its tag and notes, but the desktop jobs skip with a warning instead of shipping
   an app that points at localhost.
 - Once the URL is set, add the installers to an existing release:
-  `gh workflow run release.yml --repo Gokhulnath/donna -f tag=vX.Y.Z`.
+  `gh workflow run release.yml --repo Gokhulnath/myapp -f tag=vX.Y.Z`.
 
 ## Testing desktop changes before a release
 
@@ -63,7 +63,7 @@ PRs don't build installers, to save CI minutes. Test a desktop change locally on
 
 If a change needs checking on all three platforms before a release, run the Desktop
 workflow by hand on its branch:
-`gh workflow run desktop.yml --repo Gokhulnath/donna --ref <branch>`. It builds against
+`gh workflow run desktop.yml --repo Gokhulnath/myapp --ref <branch>`. It builds against
 localhost while prd has no URL, keeps the bundles 7 days as downloadable workflow artifacts
 and never attaches them to a release.
 
@@ -74,11 +74,11 @@ and a Windows certificate are deferred until people outside the team install the
 then:
 
 - **macOS:** opening the `.dmg` app shows "can't be opened". Go to System Settings →
-  Privacy & Security, click **Open Anyway** for donna, or right-click the app and choose
+  Privacy & Security, click **Open Anyway** for myapp, or right-click the app and choose
   Open.
 - **Windows:** SmartScreen shows "Windows protected your PC". Click **More info → Run
   anyway**.
-- **Linux:** `chmod +x donna_*.AppImage` and run it, or install the `.deb` or `.rpm`.
+- **Linux:** `chmod +x myapp_*.AppImage` and run it, or install the `.deb` or `.rpm`.
 
 ## Costs
 

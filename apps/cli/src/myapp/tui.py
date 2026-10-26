@@ -7,7 +7,7 @@ from textual.binding import BindingType
 from textual.containers import Center, Vertical
 from textual.widgets import Button, Footer, Static
 
-from donna.client import Fetch, HealthReport, fetch_health
+from myapp.client import Fetch, HealthReport, fetch_health
 
 
 def status_markup(report: HealthReport) -> str:
@@ -18,8 +18,8 @@ def status_markup(report: HealthReport) -> str:
     return f"[b red]{report.status}[/]"
 
 
-class DonnaApp(App[None]):
-    TITLE = "donna"
+class MyappApp(App[None]):
+    TITLE = "myapp"
     CSS = """
     Screen { align: center middle; }
     #card { width: 64; height: auto; }
@@ -40,7 +40,7 @@ class DonnaApp(App[None]):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="card"):
-            yield Static("donna", id="title")
+            yield Static("myapp", id="title")
             yield Static("API status: checking…", id="status")
             yield Static(f"API: {self.api_url}", classes="muted")
             yield Static("Running in: Terminal (no Origin header)", classes="muted")

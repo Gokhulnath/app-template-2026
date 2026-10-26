@@ -1,6 +1,6 @@
 # desktop
 
-The donna desktop app: Tauri 2 wrapping the web app's static export (`apps/web/out`) in a
+The myapp desktop app: Tauri 2 wrapping the web app's static export (`apps/web/out`) in a
 native window. It holds no UI code and no logic of its own. Everything comes from the web
 build, and all data comes from the API.
 
@@ -22,7 +22,7 @@ both by default.
 ## Config
 
 - `src-tauri/tauri.conf.json`:
-  - identifier `com.gokhulnath.donna`
+  - identifier `com.gokhulnath.myapp`
   - `frontendDist` set to `../../web/out`
   - both "before" commands run `pnpm --filter web build`
 - **Content-Security-Policy** (`app.security.csp`): only the app's own files, plus `fetch` to

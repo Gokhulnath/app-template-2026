@@ -1,6 +1,6 @@
-# Using donna
+# Using myapp
 
-Every way to use donna is a thin layer over one HTTP API. Pick the one that fits who, or
+Every way to use myapp is a thin layer over one HTTP API. Pick the one that fits who, or
 what, is calling.
 
 - **For AI agents:** [Skill](#skill), [MCP](#mcp)
@@ -12,22 +12,22 @@ what, is calling.
 
 ### Skill
 
-`skills/donna/SKILL.md` is an [Agent Skill](https://agentskills.io). It teaches an agent to
-use the `donna` CLI: run `donna status --json`, read the fields, never run bare `donna`, and
+`skills/myapp/SKILL.md` is an [Agent Skill](https://agentskills.io). It teaches an agent to
+use the `myapp` CLI: run `myapp status --json`, read the fields, never run bare `myapp`, and
 check `--help` instead of guessing.
 
 ```bash
 # Use it everywhere (Claude Code):
-ln -s "$PWD/skills/donna" ~/.claude/skills/donna
+ln -s "$PWD/skills/myapp" ~/.claude/skills/myapp
 # Validate after editing:
-uvx --from skills-ref==0.1.1 agentskills validate skills/donna
+uvx --from skills-ref==0.1.1 agentskills validate skills/myapp
 ```
 
-Trigger evals to run by hand: `skills/donna/evals/triggers.md`.
+Trigger evals to run by hand: `skills/myapp/evals/triggers.md`.
 
 ### MCP
 
-`donna mcp` runs a stdio MCP server with hand-written, task-oriented tools:
+`myapp mcp` runs a stdio MCP server with hand-written, task-oriented tools:
 
 | Tool         | Read-only | Returns                                                      |
 | ------------ | --------- | ------------------------------------------------------------ |
@@ -36,9 +36,9 @@ Trigger evals to run by hand: `skills/donna/evals/triggers.md`.
 ```bash
 # Claude Code in this repo: already registered by .mcp.json.
 # Elsewhere:
-claude mcp add donna -- uv run --project /path/to/donna/apps/cli donna mcp
+claude mcp add myapp -- uv run --project /path/to/myapp/apps/cli myapp mcp
 # Try it by hand:
-npx @modelcontextprotocol/inspector uv run --project apps/cli donna mcp
+npx @modelcontextprotocol/inspector uv run --project apps/cli myapp mcp
 ```
 
 A remote MCP endpoint (Streamable HTTP at `/mcp`, with OAuth) comes once the API has real
@@ -51,13 +51,13 @@ auth.
 ### CLI
 
 ```bash
-pnpm donna status          # API status: ok (database ok) · http://localhost:8000
-pnpm donna status --json   # for scripts
-pnpm donna                 # interactive terminal UI (in a terminal)
-uv tool install --editable apps/cli   # put `donna` on your PATH
+pnpm myapp status          # API status: ok (database ok) · http://localhost:8000
+pnpm myapp status --json   # for scripts
+pnpm myapp                 # interactive terminal UI (in a terminal)
+uv tool install --editable apps/cli   # put `myapp` on your PATH
 ```
 
-The API URL comes from `--api-url`, then `DONNA_API_URL`, then `http://localhost:8000`.
+The API URL comes from `--api-url`, then `MYAPP_API_URL`, then `http://localhost:8000`.
 Exit codes are `0` for healthy or succeeded and `1` for not; Typer uses `2` for usage
 errors.
 
@@ -76,7 +76,7 @@ errors.
 ---
 
 All four stay in step because they share one source of truth. The API's OpenAPI schema
-defines what exists. The CLI and MCP server use one client (`apps/cli/src/donna/client.py`),
+defines what exists. The CLI and MCP server use one client (`apps/cli/src/myapp/client.py`),
 and the Skill only points at the CLI. When the API gains a capability, add it to the client,
 expose it as a CLI command and, where it's a task an agent would do, as an MCP tool. Then
 update the Skill and this page.

@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "donna",
+  "productName": "myapp",
   "version": "0.1.0",
-  "identifier": "com.gokhulnath.donna",
+  "identifier": "com.gokhulnath.myapp",
   "build": {
     "frontendDist": "../../web/out",
     "beforeDevCommand": "pnpm --filter web build",
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "donna",
+        "title": "myapp",
         "width": 900,
         "height": 600,
         "resizable": true,

@@ -1,7 +1,7 @@
 # web
 
-The donna web app: Next.js 16.4 (App Router, TypeScript, Tailwind CSS v4, Turbopack). It is
-UI only. Everything it shows comes from the donna API.
+The myapp web app: Next.js 16.4 (App Router, TypeScript, Tailwind CSS v4, Turbopack). It is
+UI only. Everything it shows comes from the myapp API.
 
 Next.js 16.4 has changed a lot. Read [`AGENTS.md`](AGENTS.md) and the guides bundled in
 `node_modules/next/dist/docs/` before writing Next.js code.

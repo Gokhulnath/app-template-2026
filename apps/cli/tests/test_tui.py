@@ -1,8 +1,8 @@
 import pytest
 from textual.widgets import Static
 
-from donna.client import HealthReport
-from donna.tui import DonnaApp
+from myapp.client import HealthReport
+from myapp.tui import MyappApp
 
 
 def fetch_returning(*reports: HealthReport):
@@ -14,14 +14,14 @@ def fetch_returning(*reports: HealthReport):
     return fetch
 
 
-def status_text(app: DonnaApp) -> str:
+def status_text(app: MyappApp) -> str:
     return str(app.query_one("#status", Static).render())
 
 
 @pytest.mark.anyio
 async def test_shows_status_and_rechecks_on_r_and_click() -> None:
     api = "http://api.test"
-    app = DonnaApp(
+    app = MyappApp(
         api,
         fetch=fetch_returning(
             HealthReport(api, "ok", "ok"),

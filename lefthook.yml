@@ -12,7 +12,7 @@ pre-commit:
       glob: "*.{js,mjs,ts,tsx}"
       run: pnpm exec eslint {staged_files}
     # Ruff runs inside each app, so import sorting sees that app's own package as
-    # first-party (from the repo root, `api` and `donna` look third-party).
+    # first-party (from the repo root, `api` and `myapp` look third-party).
     - name: ruff-api
       root: "apps/api/"
       glob: "*.py"

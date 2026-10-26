@@ -10,12 +10,12 @@ from support import IsolatedSettings
 
 from api.main import SCALAR_JS_SRI, SCALAR_JS_URL, app, create_app
 
-UNREACHABLE_DB = "postgresql+asyncpg://donna_api:unused@127.0.0.1:1/postgres"
+UNREACHABLE_DB = "postgresql+asyncpg://myapp_api:unused@127.0.0.1:1/postgres"
 
 
 def test_health_with_database(client: TestClient) -> None:
     response = client.get("/health")
-    if response.status_code == 503 and not os.environ.get("DONNA_REQUIRE_DB"):
+    if response.status_code == 503 and not os.environ.get("MYAPP_REQUIRE_DB"):
         pytest.skip("local database not running; start it with `pnpm db:start`")
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "db": "ok"}
@@ -39,7 +39,7 @@ def silent_server() -> Iterator[int]:
 
 
 def test_health_does_not_hang_on_an_unresponsive_database(silent_server: int) -> None:
-    url = f"postgresql+asyncpg://donna_api:unused@127.0.0.1:{silent_server}/postgres"
+    url = f"postgresql+asyncpg://myapp_api:unused@127.0.0.1:{silent_server}/postgres"
     settings = IsolatedSettings(database_url=url, db_health_timeout=1)
     with TestClient(create_app(settings)) as client:  # startup warm-up also times out
         started = time.monotonic()

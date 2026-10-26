@@ -52,7 +52,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         await engine.dispose()
 
     app = FastAPI(
-        title="donna API",
+        title="myapp API",
         version="0.1.0",  # x-release-please-version
         lifespan=lifespan,
         generate_unique_id_function=operation_id,

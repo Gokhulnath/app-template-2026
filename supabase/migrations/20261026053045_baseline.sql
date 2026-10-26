@@ -1,5 +1,5 @@
--- Baseline: donna's own schema, the role the API connects as, and lock-down of Supabase's
--- Data API roles. Only the FastAPI backend (as donna_api) ever touches app data.
+-- Baseline: myapp's own schema, the role the API connects as, and lock-down of Supabase's
+-- Data API roles. Only the FastAPI backend (as myapp_api) ever touches app data.
 
 -- App tables live in "app", not "public". The Data API only exposes schemas listed in
 -- supabase/config.toml's api.schemas, and "app" is never listed.
@@ -10,20 +10,20 @@ create schema if not exists app;
 -- dashboard SQL editor plus Doppler in the cloud), so no password is ever committed.
 do $$
 begin
-  if not exists (select from pg_roles where rolname = 'donna_api') then
-    create role donna_api with login;
+  if not exists (select from pg_roles where rolname = 'myapp_api') then
+    create role myapp_api with login;
   end if;
 end
 $$;
 
--- donna_api gets data access to everything migrations create in "app", and nothing else.
-grant usage on schema app to donna_api;
+-- myapp_api gets data access to everything migrations create in "app", and nothing else.
+grant usage on schema app to myapp_api;
 alter default privileges for role postgres in schema app
-  grant select, insert, update, delete on tables to donna_api;
+  grant select, insert, update, delete on tables to myapp_api;
 alter default privileges for role postgres in schema app
-  grant usage, select on sequences to donna_api;
+  grant usage, select on sequences to myapp_api;
 alter default privileges for role postgres in schema app
-  grant execute on functions to donna_api;
+  grant execute on functions to myapp_api;
 
 -- Supabase's Data API roles get nothing in "app"...
 revoke all on schema app from public, anon, authenticated;

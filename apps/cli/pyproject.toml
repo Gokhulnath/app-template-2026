@@ -1,7 +1,7 @@
 [project]
-name = "donna"
+name = "myapp"
 version = "0.1.0"
-description = "donna from the terminal: commands, a terminal UI and an MCP server"
+description = "myapp from the terminal: commands, a terminal UI and an MCP server"
 readme = "README.md"
 authors = [
     { name = "Gokhulnath Thirumaran", email = "gokhulnath.thirumaran@gmail.com" }
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-donna = "donna.cli:app"
+myapp = "myapp.cli:app"
 
 [build-system]
 requires = ["uv_build>=0.12.2,<0.13.0"]

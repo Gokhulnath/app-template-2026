@@ -5,8 +5,8 @@
 ```
   web app        Next.js static export ───────────┐
   desktop app    Tauri, wraps the same export ────┤
-  CLI / TUI      `donna` (Python) ────────────────┤
-  MCP server     `donna mcp` (stdio) ─────────────┼── HTTP ──▶  API (FastAPI) ──▶ Postgres (Supabase)
+  CLI / TUI      `myapp` (Python) ────────────────┤
+  MCP server     `myapp mcp` (stdio) ─────────────┼── HTTP ──▶  API (FastAPI) ──▶ Postgres (Supabase)
   Agent Skill    SKILL.md, drives the CLI ────────┤
   iOS / Android  later ───────────────────────────┘
 ```
@@ -22,12 +22,12 @@
 
 ## Product surfaces
 
-The docs navigation groups the ways to use donna:
+The docs navigation groups the ways to use myapp:
 
 | For AI agents                            | For humans                                    |
 | ---------------------------------------- | --------------------------------------------- |
-| **Skill**: `skills/donna/SKILL.md`       | **CLI**: `donna` commands and a terminal UI   |
-| **MCP**: `donna mcp`, a stdio MCP server | **API**: HTTP + OpenAPI, reference at `/docs` |
+| **Skill**: `skills/myapp/SKILL.md`       | **CLI**: `myapp` commands and a terminal UI   |
+| **MCP**: `myapp mcp`, a stdio MCP server | **API**: HTTP + OpenAPI, reference at `/docs` |
 
 The web and desktop apps are the visual clients. Layering: Skill → CLI → API, and
 MCP → API. The CLI, the TUI and the MCP server share one HTTP client module.
@@ -75,8 +75,8 @@ MCP → API. The CLI, the TUI and the MCP server share one HTTP client module.
   - app tables live in an `app` schema that the Data API never exposes
   - default grants on `public` are revoked from Supabase's `anon` and `authenticated`
     roles, and they get nothing on `app`
-  - the API connects as a least-privilege `donna_api` role
-  - RLS is deliberately **off**: with no policies it would block `donna_api` itself, which
+  - the API connects as a least-privilege `myapp_api` role
+  - RLS is deliberately **off**: with no policies it would block `myapp_api` itself, which
     is a non-owner role
   - `anon` keeps `USAGE` on the (empty) `public` schema through the Postgres default grant
     to `PUBLIC`; revoking that would also affect Supabase's internal roles
@@ -85,7 +85,7 @@ MCP → API. The CLI, the TUI and the MCP server share one HTTP client module.
 
 - Doppler, in a personal workplace, holds real secrets. The CLI login is scoped to
   `~/Private`, so the employer workplace never applies here.
-- One project, `donna`, for every app. Variable names keep apps apart, and only
+- One project, `myapp`, for every app. Variable names keep apps apart, and only
   `NEXT_PUBLIC_*` values ever reach the web bundle.
   - **`dev`**: local development; `doppler.yaml` binds `apps/api` and `apps/web` to it
   - **`prd`**: production, what `main` deploys; run it explicitly with
@@ -101,7 +101,7 @@ MCP → API. The CLI, the TUI and the MCP server share one HTTP client module.
 | ---------------------- | -------------------------- | -------------------------------------------------- |
 | `CORS_ALLOW_LOCALHOST` | `true`                     | `false`                                            |
 | `CORS_ORIGINS`         | (default: Tauri origins)   | Tauri origins, plus the web domain once deployed   |
-| `DATABASE_URL`         | local stack as `donna_api` | **secret**: cloud direct connection as `donna_api` |
+| `DATABASE_URL`         | local stack as `myapp_api` | **secret**: cloud direct connection as `myapp_api` |
 | `NEXT_PUBLIC_API_URL`  | `http://localhost:8000`    | the production API URL, once deployed              |
 | `SUPABASE_URL`         | `http://127.0.0.1:54321`   | `https://<project-ref>.supabase.co`                |
 
@@ -115,7 +115,7 @@ MCP → API. The CLI, the TUI and the MCP server share one HTTP client module.
 | Web: static export, client-side fetch                              | done                                                          |
 | Secrets: Doppler with `.env` fallback                              | done; Doppler projects wait on the owner's personal login     |
 | Data: Supabase, migrations, lock-down                              | local stack done; cloud link/push waits on the owner          |
-| CLI + TUI, MCP server, Agent Skill                                 | done (`apps/cli`, `skills/donna`)                             |
+| CLI + TUI, MCP server, Agent Skill                                 | done (`apps/cli`, `skills/myapp`)                             |
 | Desktop: Tauri                                                     | done (`apps/desktop`)                                         |
 | Quality: Prettier, tsc/pyright, Lefthook, CI, Renovate             | done; Renovate acts only once its GitHub App is installed     |
 | Template: `docs/template.md`, `scripts/rename-project.sh`          | done                                                          |

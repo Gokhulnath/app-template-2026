@@ -1,8 +1,8 @@
 import pytest
 from fastmcp import Client
 
-from donna.client import HealthReport
-from donna.mcp_server import build_server
+from myapp.client import HealthReport
+from myapp.mcp_server import build_server
 
 API = "http://api.test"
 

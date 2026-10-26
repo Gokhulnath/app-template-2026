@@ -1,6 +1,6 @@
-# donna
+# myapp
 
-donna is one FastAPI backend serving many thin clients. The repo is also a template for
+myapp is one FastAPI backend serving many thin clients. The repo is also a template for
 future monorepos (published as `Gokhulnath/app-template-2026`), so how it's built matters
 as much as what it does.
 
@@ -18,7 +18,7 @@ as much as what it does.
 - Run everything from the root with pnpm: `pnpm dev`, `pnpm lint`, `pnpm typecheck`,
   `pnpm test`, `pnpm build`, `pnpm format`. Before calling work done, run `pnpm lint`,
   `pnpm typecheck` and `pnpm test` with the local database up (`pnpm db:start`); CI runs
-  the same with `DONNA_REQUIRE_DB=1`. Install only from the root (one `pnpm-lock.yaml`),
+  the same with `MYAPP_REQUIRE_DB=1`. Install only from the root (one `pnpm-lock.yaml`),
   and never add a `pnpm-workspace.yaml` or lockfile inside an app.
 - Python apps (`apps/api`, `apps/cli`): uv only (`uv add`, `uv run`), never `pip`.
   `.python-version` is `3.14+gil` on purpose: plain `3.14` lets uv pick its free-threaded

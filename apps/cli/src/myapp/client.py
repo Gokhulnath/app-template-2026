@@ -1,6 +1,6 @@
 """The one HTTP client the terminal surfaces share: commands, TUI and MCP server.
 
-Like every donna client, it only talks to the API; no logic lives here.
+Like every myapp client, it only talks to the API; no logic lives here.
 """
 
 from collections.abc import Awaitable, Callable

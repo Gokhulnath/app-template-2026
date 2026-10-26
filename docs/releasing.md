@@ -62,9 +62,14 @@ choice: add `Release-As: 1.0.0` to a commit body when it's time.
 
 ## Merging the release PR
 
-release-please opens its PR with the built-in `GITHUB_TOKEN`, and GitHub doesn't run
-workflows for those, so the required CI check never appears on it. The PR only changes
-version numbers, the changelog and lockfiles. Merge it with your admin bypass:
+release-please opens its PR as `github-actions[bot]`, so GitHub holds CI on it until you
+approve the run: the PR's checks show "action required", and the run has an **Approve and
+run** button (Actions tab). Approving is worth it before a release, because CI then checks
+the version bumps, changelog and lockfiles together.
+
+The PR still needs your admin bypass to merge. The tidy job pushes its commit with
+`GITHUB_TOKEN`, which never starts workflows, so the PR's latest commit has no CI result of
+its own. The PR only changes version numbers, the changelog and lockfiles:
 
 ```bash
 gh pr merge <release-pr-number> --repo Gokhulnath/myapp --rebase --admin

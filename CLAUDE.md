@@ -77,8 +77,8 @@ private (secrets, cloud identifiers, local paths). Product features stay here.
   version for every app. See `docs/releasing.md`. Don't hand-edit versions in
   `tauri.conf.json`, `Cargo.toml`, the `pyproject.toml` files, `apps/web/package.json` or
   `apps/cli/mcpb/manifest.json`; the release PR bumps them.
-- The owner decides when to release by merging the release PR (with `--admin`, since its CI
-  doesn't run).
+- The owner decides when to release by merging the release PR, with `--admin`: GitHub holds
+  CI on it until the owner approves the run, and the tidy job's commit gets no run at all.
 - CI builds the desktop installers only for releases and manual runs, never on PRs, to save
   CI minutes. Test a desktop change locally (`pnpm dev:desktop`, `pnpm build:desktop`).
 

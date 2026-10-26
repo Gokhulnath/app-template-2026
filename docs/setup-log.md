@@ -1663,3 +1663,20 @@ Commit: `ci: format the files release-please writes on the release PR`
 - Verified on donna's release PR branch: the step reformatted those three files, left
   `tauri.conf.json` and `apps/web/package.json` unchanged, and `prettier --check` passed on
   all five.
+
+## Tidy the release PR even when release-please leaves it unchanged
+
+Commits: `ci: tidy the release PR even when release-please leaves it unchanged` and
+`docs(repo): say that CI on the release PR waits for approval`
+
+- Ported from donna (its step 67). The tidy job ran only when release-please created or
+  updated its PR. In donna, the push that added it was a `ci:` commit, which changes nothing
+  in the release PR, so the job was skipped and the release PR stayed unformatted.
+- `release.yml`: a small `release-pr` job runs on every push to `main` that didn't just cut a
+  release. It finds the open PR labelled `autorelease: pending`, and passes its branch on
+  unless the head commit is already the tidy commit. `tidy` runs only when it gets a branch.
+  A push to `main` with an already tidy release PR costs one short job.
+- Correction: GitHub does run CI on release-please's PRs, but holds each run ("action
+  required") until the owner approves it. `docs/releasing.md` and `CLAUDE.md` now say so. The
+  tidy commit, pushed with `GITHUB_TOKEN`, starts no run, so the release PR still merges with
+  `--admin`.

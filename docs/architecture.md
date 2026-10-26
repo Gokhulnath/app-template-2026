@@ -97,13 +97,15 @@ MCP → API. The CLI, the TUI and the MCP server share one HTTP client module.
   safe local-development values.
 - Nothing secret is ever committed, put in a `NEXT_PUBLIC_*` variable or pasted in chat.
 
-| Key                    | `dev`                      | `prd`                                              |
-| ---------------------- | -------------------------- | -------------------------------------------------- |
-| `CORS_ALLOW_LOCALHOST` | `true`                     | `false`                                            |
-| `CORS_ORIGINS`         | (default: Tauri origins)   | Tauri origins, plus the web domain once deployed   |
-| `DATABASE_URL`         | local stack as `myapp_api` | **secret**: cloud direct connection as `myapp_api` |
-| `NEXT_PUBLIC_API_URL`  | `http://localhost:8000`    | the production API URL, once deployed              |
-| `SUPABASE_URL`         | `http://127.0.0.1:54321`   | `https://<project-ref>.supabase.co`                |
+| Key                          | `dev`                      | `prd`                                                                           |
+| ---------------------------- | -------------------------- | ------------------------------------------------------------------------------- |
+| `CORS_ALLOW_LOCALHOST`       | `true`                     | `false`                                                                         |
+| `CORS_ORIGINS`               | (default: Tauri origins)   | Tauri origins, plus the web domain once deployed                                |
+| `DATABASE_URL`               | local stack as `myapp_api` | **secret**: cloud direct connection as `myapp_api`                              |
+| `MYAPP_API_DB_PASSWORD`      | —                          | **secret**: `myapp_api`'s cloud password, which `DATABASE_URL` references       |
+| `NEXT_PUBLIC_API_URL`        | `http://localhost:8000`    | the production API URL, once deployed                                           |
+| `SUPABASE_URL`               | `http://127.0.0.1:54321`   | `https://<project-ref>.supabase.co`                                             |
+| `SUPABASE_POSTGRES_PASSWORD` | —                          | **secret**: the cloud `postgres` password, kept for the owner; no code reads it |
 
 `SUPABASE_URL` isn't read by code yet. It's there for Supabase Auth.
 

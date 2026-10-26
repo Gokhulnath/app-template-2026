@@ -8,7 +8,7 @@
 
 ## Verified
 
-<!-- What you ran and saw: pnpm lint / typecheck / test (with the database up), and any manual check. -->
+<!-- What you ran and saw: `pnpm verify` (or `pnpm verify --no-desktop` when the desktop app can't be affected), and any manual check. -->
 
 ## Setup log
 

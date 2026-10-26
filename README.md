@@ -32,20 +32,22 @@ API.
 
 ## Root scripts
 
-| Command                                                | Runs                                                                          |
-| ------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| `pnpm dev`                                             | every app's dev server, in parallel                                           |
-| `pnpm dev:web`                                         | Next.js dev server                                                            |
-| `pnpm dev:api`                                         | `fastapi dev` (port 8000; override with `--port`)                             |
-| `pnpm dev:desktop` / `build:desktop`                   | the Tauri desktop app (needs Rust)                                            |
-| `pnpm build`                                           | static export of the web app into `apps/web/out/`                             |
-| `pnpm lint`                                            | Prettier check, ESLint (web), `ruff check` + `ruff format --check` (api, cli) |
-| `pnpm typecheck`                                       | `tsc` (web), pyright (api, cli)                                               |
-| `pnpm format`                                          | Prettier, plus ruff fix and format                                            |
-| `pnpm test`                                            | pytest (api, cli)                                                             |
-| `pnpm myapp …`                                         | the `myapp` CLI, e.g. `pnpm myapp status`                                     |
-| `pnpm db:start` / `db:stop` / `db:reset` / `db:status` | local Supabase stack                                                          |
-| `pnpm db:migration <name>`                             | new SQL migration in `supabase/migrations/`                                   |
+| Command                                                | Runs                                                                            |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `pnpm dev`                                             | every app's dev server, in parallel                                             |
+| `pnpm dev:web`                                         | Next.js dev server                                                              |
+| `pnpm dev:api`                                         | `fastapi dev` (port 8000; override with `--port`)                               |
+| `pnpm dev:desktop` / `build:desktop`                   | the Tauri desktop app (needs Rust)                                              |
+| `pnpm build:desktop:linux`                             | the desktop app's Linux bundles, built in Docker (`--amd64` for x86_64)         |
+| `pnpm build`                                           | static export of the web app into `apps/web/out/`                               |
+| `pnpm lint`                                            | Prettier check, ESLint (web), `ruff check` + `ruff format --check` (api, cli)   |
+| `pnpm typecheck`                                       | `tsc` (web), pyright (api, cli)                                                 |
+| `pnpm format`                                          | Prettier, plus ruff fix and format                                              |
+| `pnpm test`                                            | pytest (api, cli)                                                               |
+| `pnpm verify`                                          | the pre-merge check: lint, types, tests, builds, macOS and Linux desktop builds |
+| `pnpm myapp …`                                         | the `myapp` CLI, e.g. `pnpm myapp status`                                       |
+| `pnpm db:start` / `db:stop` / `db:reset` / `db:status` | local Supabase stack                                                            |
+| `pnpm db:migration <name>`                             | new SQL migration in `supabase/migrations/`                                     |
 
 ## Docs
 

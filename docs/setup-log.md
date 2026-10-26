@@ -1544,3 +1544,41 @@ Commit: `docs(repo): license the template under MIT`
   Supabase project ref and database host, and notes about the owner's local machine.
 - Made public once the history had been checked for secrets and private details:
   `gh repo edit Gokhulnath/app-template-2026 --visibility public --accept-visibility-change-consequences`.
+
+## `pnpm verify`, the local pre-merge check
+
+Commit: `build(repo): add pnpm verify, the local pre-merge check`
+
+Ported from donna (its step 64). PRs don't build the desktop apps in CI, so the owner
+checks the builds locally before merging, and CI minutes go to releases.
+
+- `scripts/verify.sh` (`pnpm verify`, or `pnpm verify --no-desktop`):
+  - lint and type-check
+  - tests with `MYAPP_REQUIRE_DB=1`, starting the local database if it's down
+  - the web build
+  - on a Mac, `pnpm build:desktop --bundles app` and the Linux bundles in Docker; on Linux,
+    the native build
+  - a summary of every step. Windows is left to the release workflow, because a Mac can't
+    practically build it.
+- `apps/desktop/linux.Dockerfile` and `scripts/build-desktop-linux.sh`
+  (`pnpm build:desktop:linux`, or `--amd64` for x86_64 under emulation):
+  - the image: `node:26-bookworm-slim`, Tauri's Linux prerequisites, Rust stable via
+    rustup, and the repo's pnpm (read from `packageManager`)
+  - the working tree goes in as a tar (`git ls-files --cached --others --exclude-standard`),
+    not a bind mount. The Mac's `node_modules`, `.venv` and `target` never reach Linux, and
+    the build never writes into the checkout.
+  - named volumes keep the Rust `target`, the cargo registry, the pnpm store and Tauri's
+    tool downloads between runs
+  - a throwaway `git init` in the container, because the root `prepare` script installs the
+    Lefthook hooks
+  - no extra container privileges: Tauri runs linuxdeploy without FUSE for the AppImage, and
+    writes `.deb` and `.rpm` itself
+- Measured on the owner's Apple Silicon Mac (18 cores):
+  - the first Linux build took 52 s once the image existed (Rust compile 31 s)
+  - a full `pnpm verify` took about a minute: lint 2 s, type-check 2 s, tests 3 s, build 3 s,
+    macOS app 26 s, Linux bundles 23 s
+  - arm64 bundles: `.deb` 3.2 MB, `.rpm` 3.2 MB, `.AppImage` 90 MB
+- Docs:
+  - `CLAUDE.md`: run `pnpm verify` before merging, and a new "Keep the template current"
+    section
+  - the PR template's Verified hint, the README's scripts table, and `docs/releasing.md`

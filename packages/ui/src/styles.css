@@ -1,0 +1,45 @@
+/* The one stylesheet every consumer imports: `import "@myapp/ui/styles.css"`. It pulls in
+   Tailwind, the design tokens and the theme that maps them onto Tailwind's utilities, the
+   bundled Geist fonts, and the handful of base styles every screen shares. Nothing else in
+   this repo should write color, font-size, radius or shadow CSS of its own. */
+
+@import "tailwindcss";
+@import "@myapp/tokens/tokens.css";
+@import "@myapp/tokens/theme.css";
+
+/* However a consumer's own CSS pulls this file in (an app's globals.css, Storybook's
+   preview, a future client), Tailwind scans this package's own source for the token
+   utilities it defines components with. Consumers never write Tailwind classes of their
+   own, so they need no @source of their own. */
+@source "./";
+
+@font-face {
+  font-family: "Geist";
+  src: url("./fonts/Geist-Variable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("./fonts/GeistMono-Variable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* In the base layer, so any utility on an element still wins. */
+@layer base {
+  body {
+    @apply bg-bg text-text font-sans antialiased;
+  }
+
+  /* One focus style, everywhere: a visible ring in the token focus color, offset from the
+     element so it reads on any background, and only for keyboard focus. The outline
+     follows each element's own corner radius. */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}

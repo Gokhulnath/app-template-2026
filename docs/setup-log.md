@@ -1533,3 +1533,14 @@ Commits: `ci: skip releases in template repositories` and
 `scripts/rename-project.sh myapp` renamed every `donna` / `Donna` / `DONNA` to
 `myapp` / `Myapp` / `MYAPP`, and moved `apps/cli/src/donna` and `skills/donna`.
 The steps above are the template's history and still use its earlier names.
+
+## Public, under the MIT license
+
+Commit: `docs(repo): license the template under MIT`
+
+- `LICENSE`: MIT, copyright Gokhulnath Thirumaran. The README says so, and
+  `docs/template.md` tells new projects to delete or replace it for a private product.
+- The first commit copied donna with this log's donna-only details made generic: its
+  Supabase project ref and database host, and notes about the owner's local machine.
+- Made public once the history had been checked for secrets and private details:
+  `gh repo edit Gokhulnath/app-template-2026 --visibility public --accept-visibility-change-consequences`.

@@ -62,3 +62,8 @@ API.
   (`scripts/rename-project.sh <name>`).
 - Per-app details: [`apps/web`](apps/web/README.md), [`apps/api`](apps/api/README.md),
   [`apps/cli`](apps/cli/README.md), [`apps/desktop`](apps/desktop/README.md).
+
+## License
+
+MIT, see [`LICENSE`](LICENSE). Projects created from the template inherit it; for a private
+product, delete `LICENSE` or put your own terms in it.

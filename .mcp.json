@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "myapp": {
-      "command": "uv",
-      "args": ["run", "--project", "apps/cli", "myapp", "mcp"]
+      "type": "http",
+      "url": "http://localhost:8000/mcp"
     }
   }
 }

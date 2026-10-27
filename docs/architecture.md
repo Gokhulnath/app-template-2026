@@ -5,10 +5,10 @@
 ```
   web app        Next.js static export ───────────┐
   desktop app    Tauri, wraps the same export ────┤
-  CLI / TUI      `myapp` (Python) ────────────────┤
-  MCP server     `myapp mcp` (stdio) ─────────────┼── HTTP ──▶  API (FastAPI) ──▶ Postgres (Supabase)
-  Agent Skill    SKILL.md, drives the CLI ────────┤
-  iOS / Android  later ───────────────────────────┘
+  CLI / TUI      `myapp` (Python) ────────────────┼── HTTP ──▶  API (FastAPI) ──▶ Postgres (Supabase)
+  Agent Skill    SKILL.md, drives the CLI ────────┤                  ▲
+  iOS / Android  later ───────────────────────────┘                  │
+  MCP client     Claude Code, or `myapp mcp` ────────── /mcp (HTTP) ──┘
 ```
 
 - **All business logic and all data access live in the API** (`apps/api`). Clients render,
@@ -16,6 +16,12 @@
   the API.
 - **Clients never reach the database.** Not directly, and not through Supabase's
   auto-generated Data API, which stays disabled.
+- **MCP is part of the API, not a separate client.** myapp's tool (`get_status`) is
+  defined once in `apps/api/src/api/mcp.py` and served over MCP (Streamable HTTP) at
+  `/mcp`, mounted straight into the FastAPI app, so a tool call runs the same code as the
+  matching REST route. `myapp mcp` (the CLI, and the `.mcpb` bundle) is a stdio proxy to
+  `/mcp` with no tool definitions of its own, for setups that can't reach the API's HTTP
+  port directly.
 - **The OpenAPI schema (`/openapi.json`) is the contract.** Every client is written against
   it. Generated clients (TypeScript for web and desktop, Python for the CLI and MCP, Swift
   and Kotlin for mobile) come from it once there are a few real endpoints.
@@ -24,13 +30,15 @@
 
 The docs navigation groups the ways to use myapp:
 
-| For AI agents                            | For humans                                    |
-| ---------------------------------------- | --------------------------------------------- |
-| **Skill**: `skills/myapp/SKILL.md`       | **CLI**: `myapp` commands and a terminal UI   |
-| **MCP**: `myapp mcp`, a stdio MCP server | **API**: HTTP + OpenAPI, reference at `/docs` |
+| For AI agents                                                | For humans                                    |
+| ------------------------------------------------------------ | --------------------------------------------- |
+| **Skill**: `skills/myapp/SKILL.md`                           | **CLI**: `myapp` commands and a terminal UI   |
+| **MCP**: `/mcp` in the API (HTTP), `myapp mcp` (stdio proxy) | **API**: HTTP + OpenAPI, reference at `/docs` |
 
 The web and desktop apps are the visual clients. Layering: Skill → CLI → API, and
-MCP → API. The CLI, the TUI and the MCP server share one HTTP client module.
+MCP client → `/mcp` → API (the CLI's stdio proxy is one such MCP client). The CLI and the
+TUI share one HTTP client module (`apps/cli/src/myapp/client.py`); the MCP proxy doesn't
+use it, since proxying is an MCP-to-MCP concern, not an HTTP-to-API one.
 
 ## API conventions
 

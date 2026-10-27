@@ -27,21 +27,34 @@ Trigger evals to run by hand: `skills/myapp/evals/triggers.md`.
 
 ### MCP
 
-`myapp mcp` runs a stdio MCP server with hand-written, task-oriented tools:
+myapp's tool is defined once, in the API, and served over MCP (Streamable HTTP) at
+`/mcp` -- hand-written and task-oriented, not generated one-per-endpoint:
 
-| Tool         | Read-only | Returns                                                      |
-| ------------ | --------- | ------------------------------------------------------------ |
-| `get_status` | yes       | `api_url`, `status` (ok, degraded, error, unreachable), `db` |
+| Tool         | Read-only | Returns                                                    |
+| ------------ | --------- | ---------------------------------------------------------- |
+| `get_status` | yes       | `api_url`, `status` (ok, degraded), `db` (ok, unavailable) |
+
+A failed call (a database that's down) comes back as a tool error.
 
 ```bash
-# Claude Code in this repo: already registered by .mcp.json.
-# Elsewhere:
-claude mcp add myapp -- uv run --project /path/to/myapp/apps/cli myapp mcp
+# Claude Code in this repo: already registered by .mcp.json (an HTTP server).
+# Elsewhere, against a running API:
+claude mcp add --transport http myapp http://localhost:8000/mcp
 # Try it by hand:
+npx @modelcontextprotocol/inspector
+```
+
+`myapp mcp` runs the same tool over stdio, for setups that can't reach the API's HTTP port
+directly (Claude Desktop's `.mcpb` bundle, for one): it's a thin proxy to `/mcp`, with no
+tool definitions of its own, pointed at the API URL the CLI already resolves (`--api-url`,
+`MYAPP_API_URL`, a release's own API, then `http://localhost:8000`).
+
+```bash
+claude mcp add myapp -- uv run --project /path/to/myapp/apps/cli myapp mcp
 npx @modelcontextprotocol/inspector uv run --project apps/cli myapp mcp
 ```
 
-A remote MCP endpoint (Streamable HTTP at `/mcp`, with OAuth) comes once the API has real
+MCP OAuth (so Claude Code can sign in once to a deployed API) comes once the API has real
 auth.
 
 ---
@@ -78,7 +91,8 @@ errors.
 ---
 
 All four stay in step because they share one source of truth. The API's OpenAPI schema
-defines what exists. The CLI and MCP server use one client (`apps/cli/src/myapp/client.py`),
-and the Skill only points at the CLI. When the API gains a capability, add it to the client,
-expose it as a CLI command and, where it's a task an agent would do, as an MCP tool. Then
-update the Skill and this page.
+defines what exists. The CLI uses one client (`apps/cli/src/myapp/client.py`); MCP tools
+are defined once, in the API itself, and the CLI's stdio server only proxies them; the
+Skill only points at the CLI. When the API gains a capability, add it to the client,
+expose it as a CLI command and, where it's a task an agent would do, as an MCP tool in
+`apps/api/src/api/mcp.py`. Then update the Skill and this page.

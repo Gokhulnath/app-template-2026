@@ -1789,3 +1789,45 @@ DB_MAX_OVERFLOW` = 10 connections instead of SQLAlchemy's own defaults (5 + 10 =
   `pool_timeout` wired into `create_async_engine`, the pool defaults to 5 + 10 connections,
   so the same test fails immediately ("DID NOT RAISE") instead of timing out slowly.
   Verified by temporarily reverting `create_engine` and running the test, then restoring it.
+
+## Serve myapp's tool over MCP at /mcp
+
+Commit: `feat(api): serve myapp's tool over MCP at /mcp`
+
+Ported from donna (its step 73), adapted to this template's API, which has only one tool
+(`get_status`) and no task feature, so donna's db-function-sharing refactor doesn't apply
+here:
+
+- `cd apps/api && uv add "fastmcp>=4.1.3"`, matching the version `apps/cli` already pinned
+  (resolved to `4.1.3` in both lockfiles).
+- `cd apps/api && uv add --dev "httpx2>=2.16.0"`: `tests/test_mcp.py` imports fastmcp's HTTP
+  client library directly, so it's declared rather than relied on through fastmcp.
+- `apps/api/src/api/mcp.py`: a `FastMCP` server named `"myapp"` with one tool,
+  `get_status`, calling `api.db.database_ok` directly -- it IS the API now, so it checks
+  the database itself rather than going through the REST route over HTTP. `api_url` comes
+  from the inbound HTTP request when there is one, and is `null` for a direct
+  `fastmcp.Client` call or a stdio call through the CLI's proxy.
+- `apps/api/src/api/main.py`: `create_app` mounts the MCP app at `/mcp`, built with
+  `path="/"` and `stateless_http=True` -- mounted at `/mcp` rather than built with
+  `path="/mcp"` and mounted at `/`, because a mount at `/` is a catch-all that would have
+  shadowed any route added to `app` after `create_app()` returns (`tests/test_problems.py`
+  does exactly that). Stateless HTTP means a tool call is one request/response with no
+  session held open, verified by `tests/test_mcp.py`'s HTTP-mount test, which runs the real
+  ASGI lifespan protocol (`fastmcp.utilities.asgi_transport.run_asgi_lifespan`). The app's
+  own lifespan and FastMCP's are combined with an `AsyncExitStack`, the pattern FastMCP's
+  ASGI integration docs give for a host app that already has a lifespan of its own.
+- `apps/cli/src/myapp/mcp_server.py`: now one function, `build_server`, wrapping
+  `fastmcp.server.create_proxy`, pointed at `f"{api_url}/mcp"` with
+  `provider_error_strategy="raise"`. `"raise"` (not the default `"warn"`) is what turns an
+  unreachable API into a clear error instead of a silently empty tool list, since the API
+  is the proxy's only provider. `apps/cli/mcpb/manifest.json`'s description is updated to
+  match; its tool list is unchanged (still just `get_status`).
+- `.mcp.json` now registers the HTTP server directly
+  (`{"type": "http", "url": "http://localhost:8000/mcp"}`) instead of running the stdio
+  proxy for this repo's own Claude Code sessions.
+- Tests moved with the tool: the tool contract (list, status, database down, the mounted
+  `/mcp` endpoint) is `apps/api/tests/test_mcp.py`, against the real database, using
+  `fastmcp.Client` against the server object and once against the mounted `/mcp` endpoint
+  over HTTP. `apps/cli/tests/test_mcp.py` now tests only the CLI's own job (forwarding
+  tools from an upstream, reporting an unreachable one clearly) against an in-process fake
+  upstream (`fastmcp.utilities.tests.run_server_async`).

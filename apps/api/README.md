@@ -24,6 +24,19 @@ uv run ruff check && uv run ruff format --check
 From the repo root, `pnpm dev:api` does the same and sets `CORS_ALLOW_LOCALHOST=true` for
 you. Without it, browser clients on localhost (the web dev server, `tauri dev`) are refused.
 
+## MCP (`/mcp`)
+
+myapp's tool (`get_status`) is defined in `src/api/mcp.py` and served over MCP (Streamable
+HTTP) at `/mcp`, mounted into the FastAPI app in `create_app` (`src/api/main.py`). It
+checks the database directly, the same way `/health` does.
+
+```bash
+claude mcp add --transport http myapp http://localhost:8000/mcp
+```
+
+The CLI's stdio server (`apps/cli`, `myapp mcp`) is a thin proxy to this endpoint; see
+`apps/cli/README.md` and `docs/surfaces.md`.
+
 ## Dependencies
 
 ```bash

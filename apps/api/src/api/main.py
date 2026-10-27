@@ -1,6 +1,6 @@
 import logging
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from typing import Literal
 
 from asgi_correlation_id import CorrelationIdMiddleware
@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from scalar_fastapi import AgentScalarConfig, get_scalar_api_reference
 
 from api.db import create_engine, database_ok
+from api.mcp import build_mcp_server
 from api.problems import UnhandledErrorMiddleware, add_problem_handlers
 from api.settings import Settings
 
@@ -47,15 +48,35 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         max_overflow=settings.db_max_overflow,
         pool_timeout=settings.db_pool_timeout,
     )
+    # myapp's one tool (get_status), served over MCP at /mcp -- the same server Claude
+    # Code or any other MCP client reaches directly, and the CLI's stdio server proxies
+    # to. Stateless, so a tool call is one request/response like any other route, with no
+    # session kept open across requests.
+    mcp_server = build_mcp_server(engine, db_health_timeout=settings.db_health_timeout)
+    # path="/" here, mounted at "/mcp" below (rather than path="/mcp" mounted at "/"): a
+    # Mount at "/" is a catch-all that would intercept every path, including one a test or
+    # a future route adds to `app` after create_app() returns -- those routes are later in
+    # Starlette's route list than whatever create_app() itself added, and a catch-all
+    # mount earlier in that list would shadow them.
+    mcp_app = mcp_server.http_app(path="/", stateless_http=True)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        # Warm the pool so the first /health doesn't pay for the cold connection. A down
-        # database doesn't stop the API from starting; /health reports it instead.
-        if not await database_ok(engine, settings.db_health_timeout):
-            logger.warning("Database unreachable at startup; /health reports degraded.")
-        yield
-        await engine.dispose()
+        # FastMCP's mounted app owns its own lifespan (it starts the Streamable HTTP
+        # session manager's task group); entered first, inside this one, via the pattern
+        # FastMCP's own ASGI integration docs give for combining with a host app's
+        # lifespan (`mcp_app.lifespan`, https://gofastmcp.com/deployment/asgi).
+        async with AsyncExitStack() as stack:
+            await stack.enter_async_context(mcp_app.lifespan(app))
+            # Warm the pool so the first /health doesn't pay for the cold connection. A
+            # down database doesn't stop the API from starting; /health reports it
+            # instead.
+            if not await database_ok(engine, settings.db_health_timeout):
+                logger.warning(
+                    "Database unreachable at startup; /health reports degraded."
+                )
+            yield
+            await engine.dispose()
 
     app = FastAPI(
         title="myapp API",
@@ -122,6 +143,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return Health(status="ok", db="ok")
         response.status_code = 503
         return Health(status="degraded", db="unavailable")
+
+    app.mount("/mcp", mcp_app)
 
     return app
 

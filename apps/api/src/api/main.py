@@ -40,7 +40,13 @@ def operation_id(route: APIRoute) -> str:
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
-    engine = create_engine(settings.database_url, settings.db_health_timeout)
+    engine = create_engine(
+        settings.database_url,
+        connect_timeout=settings.db_health_timeout,
+        pool_size=settings.db_pool_size,
+        max_overflow=settings.db_max_overflow,
+        pool_timeout=settings.db_pool_timeout,
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:

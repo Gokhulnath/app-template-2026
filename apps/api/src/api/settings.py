@@ -1,3 +1,4 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Origins of the packaged desktop app: Tauri on macOS/Linux, then Tauri on Windows.
@@ -18,6 +19,15 @@ class Settings(BaseSettings):
     # connection to a remote database (DNS, TLS, auth, SQLAlchemy's setup queries) took
     # about 2.2s from here to the cloud project, so 2s was too tight.
     db_health_timeout: float = 5.0
+    # The connection pool, per API process: db_pool_size connections stay open, up to
+    # db_max_overflow more open under load and close when idle, and a request that finds
+    # every one busy waits db_pool_timeout seconds, then gets a 503. There's no long-lived
+    # listener connection here (no /v1/events yet), so a process uses at most
+    # db_pool_size + db_max_overflow connections. docs/architecture.md ("Connections") has
+    # the budget across processes.
+    db_pool_size: int = Field(default=5, ge=1)
+    db_max_overflow: int = Field(default=5, ge=0)
+    db_pool_timeout: float = Field(default=5.0, gt=0)
 
     # Exact origins CORS allows, comma-separated. Production adds the web app's domain.
     cors_origins: str = DESKTOP_ORIGINS

@@ -1762,3 +1762,30 @@ See `docs/design-system.md`.
   packages `web` depends on.
 - Example content in a couple of `packages/ui` stories (a status card, a labeled field) was
   reworded generically: the template ships no feature those examples were demoing.
+
+## Set the database connection pool explicitly
+
+Commit: `fix(api): set the connection pool explicitly`
+
+Ported from donna's fix (its step 72), adapted to this template's API, which has no routes
+under `/v1` yet (only `/health`) and no long-lived listener connection:
+
+- `DB_POOL_SIZE` (5), `DB_MAX_OVERFLOW` (5) and `DB_POOL_TIMEOUT` (5 s) are now settings,
+  passed to SQLAlchemy's pool, so each API process uses at most `DB_POOL_SIZE +
+DB_MAX_OVERFLOW` = 10 connections instead of SQLAlchemy's own defaults (5 + 10 = 15,
+  undocumented). `docs/architecture.md` ("Connections") has the budget across replicas and
+  says what a future per-request route should do with SQLAlchemy's own pool-timeout error.
+- Donna's matching fix also turned an unhandled `PoolTimeout` into a `503` with
+  `Retry-After: 1` inside a `get_connection` FastAPI dependency used by its `/v1/tasks`
+  routes. This template has no such dependency yet (no resource depends on the database
+  per-request beyond `/health`, which already treats `PoolTimeout` as "unavailable" through
+  its existing broad exception handling), so that conversion isn't shipped as code here —
+  only documented, for the first route that adds it.
+- `tests/support.py` gains `database_settings()` and `require_database()`, which
+  `conftest.py` and the new regression test share.
+- Regression test (`tests/test_db_pool.py`): a one-connection, no-overflow pool with a
+  0.2 s timeout, held by the test, makes a second `engine.connect()` raise
+  `sqlalchemy.exc.TimeoutError` within 2 seconds. Without `pool_size`/`max_overflow`/
+  `pool_timeout` wired into `create_async_engine`, the pool defaults to 5 + 10 connections,
+  so the same test fails immediately ("DID NOT RAISE") instead of timing out slowly.
+  Verified by temporarily reverting `create_engine` and running the test, then restoring it.

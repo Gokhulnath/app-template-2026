@@ -1,0 +1,38 @@
+---
+title: Agent Skill
+description: Teaches an agent to use the myapp CLI -- no logic of its own.
+---
+
+`skills/myapp/SKILL.md` is an [Agent Skill](https://agentskills.io): a short set of
+instructions that teaches an agent (Claude Code, or any other that supports Agent Skills)
+to use the `myapp` CLI. It holds no logic and no scripts of its own -- the layering is
+Skill &rarr; CLI &rarr; API, same as everywhere else in myapp.
+
+The skill tells an agent to:
+
+- run `myapp status --json` and read the fields, rather than parse human-readable output
+- never run bare `myapp` (that opens the interactive UI, which an agent can't see)
+- check `--help` instead of guessing a command
+
+## Installing it
+
+```bash
+# Use it everywhere (Claude Code):
+ln -s "$PWD/skills/myapp" ~/.claude/skills/myapp
+# Or just this project:
+ln -s "$PWD/skills/myapp" .claude/skills/myapp
+```
+
+## Validating it
+
+```bash
+uvx --from skills-ref==0.1.1 agentskills validate skills/myapp
+```
+
+`skills/myapp/evals/triggers.md` lists prompts that should and shouldn't load the skill --
+worth a read after changing its description, and run by hand to check.
+
+## Reaching the same tool over MCP instead
+
+An agent that speaks MCP can skip the Skill and CLI entirely, and call myapp's tool
+directly over `/mcp` -- see [Claude Code and MCP](/docs/use/claude-code-mcp).

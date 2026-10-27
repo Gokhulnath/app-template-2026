@@ -1,4 +1,7 @@
-# Design system
+---
+title: Design system
+description: Tokens, components, and the rules every myapp screen follows.
+---
 
 Every myapp screen draws from one set of decisions: the same colors, fonts, sizes, spacing,
 corner radii, shadows and components. A change made here reaches every client, and a client

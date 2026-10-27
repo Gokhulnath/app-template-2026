@@ -1,0 +1,60 @@
+/* Every color, font and radius here comes from @myapp/tokens (packages/tokens/src), the
+   same source apps/web and the terminal UI read. This file only maps Fumadocs UI's own
+   theme variables onto them -- see docs/design-system.md. */
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+@import "fumadocs-openapi/css/preset.css";
+@import "@myapp/tokens/tokens.css";
+
+@theme inline {
+  --font-sans: var(--ds-font-family-sans);
+  --font-mono: var(--ds-font-family-mono);
+  --radius-sm: var(--ds-radius-sm);
+  --radius-md: var(--ds-radius-md);
+  --radius-lg: var(--ds-radius-lg);
+  --radius-xl: var(--ds-radius-xl);
+}
+
+/* Colors are plain custom-property overrides, not `@theme`: Tailwind hoists every
+   `@theme` block (ours included) into one `:root` rule ahead of fumadocs-ui/css/
+   neutral.css's own plain `.dark { ... }` rule, which would otherwise win in dark mode
+   regardless of source order. @myapp/tokens' colors already switch with
+   `data-theme`/`prefers-color-scheme` (see app/layout.tsx), so both blocks below just
+   repeat the same mapping; only the selector differs. */
+:root,
+.dark {
+  --color-fd-background: var(--ds-color-bg);
+  --color-fd-foreground: var(--ds-color-text);
+  --color-fd-muted: var(--ds-color-surface-muted);
+  --color-fd-muted-foreground: var(--ds-color-text-muted);
+  --color-fd-popover: var(--ds-color-surface);
+  --color-fd-popover-foreground: var(--ds-color-text);
+  --color-fd-card: var(--ds-color-surface);
+  --color-fd-card-foreground: var(--ds-color-text);
+  --color-fd-border: var(--ds-color-border);
+  --color-fd-primary: var(--ds-color-accent);
+  --color-fd-primary-foreground: var(--ds-color-accent-fg);
+  --color-fd-secondary: var(--ds-color-surface-muted);
+  --color-fd-secondary-foreground: var(--ds-color-text);
+  --color-fd-accent: var(--ds-color-accent-subtle);
+  --color-fd-accent-foreground: var(--ds-color-accent);
+  --color-fd-ring: var(--ds-color-focus);
+
+  /* Callout colors (info/warning/error/success); "idea" and the dialog overlay tint have
+     no myapp equivalent (no fifth callout tone, no scrim color in packages/tokens), so
+     they keep Fumadocs' own default. */
+  --color-fd-info: var(--ds-color-accent);
+  --color-fd-warning: var(--ds-color-warning);
+  --color-fd-error: var(--ds-color-danger);
+  --color-fd-success: var(--ds-color-success);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}

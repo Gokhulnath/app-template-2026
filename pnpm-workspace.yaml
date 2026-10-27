@@ -13,3 +13,6 @@ allowBuilds:
   lefthook: false
   sharp: false
   unrs-resolver: false
+  # @scalar/api-client-react (apps/docs) pulls it in transitively; its postinstall only
+  # copies a Vue 2/3 shim neither we nor Scalar's React build touch.
+  vue-demi: false

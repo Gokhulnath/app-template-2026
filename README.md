@@ -4,16 +4,17 @@ One FastAPI backend, many thin clients: a web app, a desktop app, a CLI, an MCP 
 an Agent Skill, with iOS and Android to come. All logic and data live in the API. See
 [`docs/architecture.md`](docs/architecture.md).
 
-| Path              | What                                 | Stack                                                    | Dev URL                                      |
-| ----------------- | ------------------------------------ | -------------------------------------------------------- | -------------------------------------------- |
-| `apps/web`        | Web app (UI only)                    | Next.js 16.4 static export · React 19.3 · Tailwind CSS 4 | http://localhost:3000                        |
-| `packages/ui`     | Design system components             | Base UI 1.9 · Tailwind CSS 4 · Storybook 10.6            | `pnpm storybook` (http://localhost:6006)     |
-| `packages/tokens` | Design tokens: colors, type, spacing | DTCG JSON · Style Dictionary 5.6                         | `pnpm tokens:build`                          |
-| `apps/api`        | API: all logic and data              | FastAPI 0.162 · Python 3.14 · uv                         | http://localhost:8000 (reference at `/docs`) |
-| `apps/desktop`    | Desktop app (wraps the web export)   | Tauri 2.12 · Rust                                        | `pnpm dev:desktop`                           |
-| `apps/cli`        | `myapp` CLI, TUI and MCP server      | Typer · Textual · FastMCP · Python 3.14 · uv             | `pnpm myapp`                                 |
-| `supabase/`       | Database: migrations and local stack | Supabase CLI 2.122 · Postgres 17                         | `pnpm db:start`                              |
-| `skills/myapp`    | Agent Skill                          | Agent Skills (`SKILL.md`)                                | —                                            |
+| Path              | What                                                   | Stack                                                    | Dev URL                                      |
+| ----------------- | ------------------------------------------------------ | -------------------------------------------------------- | -------------------------------------------- |
+| `apps/web`        | Web app (UI only)                                      | Next.js 16.4 static export · React 19.3 · Tailwind CSS 4 | http://localhost:3000                        |
+| `apps/docs`       | Docs site: use myapp, build myapp, generated reference | Fumadocs 16.17 · Next.js 16.4 static export              | `pnpm dev:docs` (next free port)             |
+| `packages/ui`     | Design system components                               | Base UI 1.9 · Tailwind CSS 4 · Storybook 10.6            | `pnpm storybook` (http://localhost:6006)     |
+| `packages/tokens` | Design tokens: colors, type, spacing                   | DTCG JSON · Style Dictionary 5.6                         | `pnpm tokens:build`                          |
+| `apps/api`        | API: all logic and data                                | FastAPI 0.162 · Python 3.14 · uv                         | http://localhost:8000 (reference at `/docs`) |
+| `apps/desktop`    | Desktop app (wraps the web export)                     | Tauri 2.12 · Rust                                        | `pnpm dev:desktop`                           |
+| `apps/cli`        | `myapp` CLI, TUI and MCP server                        | Typer · Textual · FastMCP · Python 3.14 · uv             | `pnpm myapp`                                 |
+| `supabase/`       | Database: migrations and local stack                   | Supabase CLI 2.122 · Postgres 17                         | `pnpm db:start`                              |
+| `skills/myapp`    | Agent Skill                                            | Agent Skills (`SKILL.md`)                                | —                                            |
 
 ## Prerequisites
 
@@ -39,6 +40,7 @@ API.
 | ------------------------------------------------------ | ------------------------------------------------------------------------------- |
 | `pnpm dev`                                             | every app's dev server, in parallel                                             |
 | `pnpm dev:web`                                         | Next.js dev server                                                              |
+| `pnpm dev:docs`                                        | the docs site's dev server                                                      |
 | `pnpm dev:api`                                         | `fastapi dev` (port 8000; override with `--port`)                               |
 | `pnpm dev:desktop` / `build:desktop`                   | the Tauri desktop app (needs Rust)                                              |
 | `pnpm build:desktop:linux`                             | the desktop app's Linux bundles, built in Docker (`--amd64` for x86_64)         |
@@ -57,6 +59,9 @@ API.
 
 ## Docs
 
+- The docs site (`apps/docs`, `pnpm dev:docs`) renders everything below, plus "Use myapp"
+  pages of its own and a reference generated from the code (the API, the CLI, the MCP
+  tool) -- see [`apps/docs/README.md`](apps/docs/README.md).
 - [`docs/surfaces.md`](docs/surfaces.md): using myapp. For AI agents: Skill, MCP. For
   humans: CLI, API.
 - [`docs/architecture.md`](docs/architecture.md): how the pieces fit, and the rules they
@@ -68,8 +73,9 @@ API.
 - [`docs/template.md`](docs/template.md): start a new project from the
   [`app-template-2026`](https://github.com/Gokhulnath/app-template-2026) template repo
   (`scripts/rename-project.sh <name>`).
-- Per-app details: [`apps/web`](apps/web/README.md), [`apps/api`](apps/api/README.md),
-  [`apps/cli`](apps/cli/README.md), [`apps/desktop`](apps/desktop/README.md).
+- Per-app details: [`apps/web`](apps/web/README.md), [`apps/docs`](apps/docs/README.md),
+  [`apps/api`](apps/api/README.md), [`apps/cli`](apps/cli/README.md),
+  [`apps/desktop`](apps/desktop/README.md).
 
 ## License
 

@@ -1,4 +1,7 @@
-# Using this monorepo as a template
+---
+title: Using this monorepo as a template
+description: This monorepo doubles as a starter for new products with the same shape.
+---
 
 donna doubles as a starter for new products with the same shape: one FastAPI backend that
 owns all logic and data, with thin clients for the web, desktop, CLI, MCP and an Agent
@@ -15,7 +18,7 @@ There are two ways to start a new project:
 - **A. Create it from the template repo.** This is fast, and you get exactly what the
   template contains.
 - **B. Rebuild from the log.** This is slower, but you get the newest versions. Follow
-  [`setup-log.md`](setup-log.md) step by step.
+  [`setup-log.md`](./setup-log.md) step by step.
 
 ## What you get
 
@@ -26,6 +29,7 @@ There are two ways to start a new project:
 | `apps/desktop`  | Tauri 2 wrapping the web export, with a CSP                                                           |
 | `apps/cli`      | `<name>` CLI (Typer), terminal UI (Textual), stdio MCP server (FastMCP)                               |
 | `skills/<name>` | Agent Skill that drives the CLI                                                                       |
+| `apps/docs`     | Docs site (Fumadocs): use/build/reference, generated from the code, `llms.txt`                        |
 | `supabase/`     | Supabase CLI config, a locked-down `app` schema and a least-privilege API role                        |
 | Tooling         | pnpm + uv, Prettier/ESLint/ruff, tsc/pyright, Lefthook, CI, Renovate, Doppler wrapper                 |
 
@@ -98,7 +102,7 @@ The web dev server already moves to the next free port, and the API takes `--por
 
 ## B. Rebuild from the log
 
-Follow [`setup-log.md`](setup-log.md) from step 1, with `donna` replaced by your name. To
+Follow [`setup-log.md`](./setup-log.md) from step 1, with `donna` replaced by your name. To
 pick up newer releases:
 
 - Replace the pinned generator versions (`create-next-app@16.4.3`, `@tauri-apps/cli@2.12.4`,
@@ -160,7 +164,6 @@ Each of these is worth doing once its trigger happens, not before:
 | Auth: Supabase Auth with JWKS checks in FastAPI, API keys for CLI and MCP | the first user-facing feature                                  |
 | Generated API clients (TypeScript, Python)                                | 3–5 real endpoints                                             |
 | Remote MCP (Streamable HTTP at `/mcp`, OAuth)                             | real auth, plus agents that can't run the CLI locally          |
-| A docs site and `llms.txt`                                                | the first real resource beyond `/health`                       |
 | Turborepo                                                                 | a shared JS package worth caching, or slow CI                  |
 | CI path filters; a Rust check in CI; cloud migration pushes               | slow CI; Rust code in the shell; Supabase secrets in Doppler   |
 | Pagination, rate limiting                                                 | the first list endpoint; the first external caller             |

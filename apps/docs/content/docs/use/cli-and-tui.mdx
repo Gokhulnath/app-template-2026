@@ -1,0 +1,37 @@
+---
+title: CLI and TUI
+description: myapp from the terminal -- scriptable commands, and an interactive UI.
+---
+
+Install `myapp` on your `PATH`, or run it through the workspace:
+
+```bash
+uv tool install --editable apps/cli   # puts `myapp` on your PATH
+pnpm myapp status                     # or run it through the workspace
+```
+
+## Commands
+
+```bash
+pnpm myapp status          # API status: ok (database ok) · http://localhost:8000
+pnpm myapp status --json   # for scripts
+```
+
+The API URL comes from `--api-url`, then `MYAPP_API_URL`, then the API a release was built
+for, then `http://localhost:8000`. Exit codes follow [clig.dev](https://clig.dev): `0` for
+healthy or succeeded, `1` for not, `2` for a usage error.
+
+See the full, generated command reference at [CLI reference](/docs/reference/cli).
+
+## Terminal UI
+
+Running bare `myapp` in an interactive terminal opens a small Textual UI: the same status
+card as the web app, kept visually close on purpose. In a script, a pipe, or an agent shell
+(anywhere stdin or stdout isn't a terminal), bare `myapp` prints help instead -- it never
+opens a UI nobody can see. Open it explicitly with `myapp tui`.
+
+```bash
+myapp          # opens the TUI, only at an interactive terminal
+myapp tui      # opens it explicitly
+myapp --help   # never opens a UI
+```

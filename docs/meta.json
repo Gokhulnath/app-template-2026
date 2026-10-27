@@ -1,0 +1,11 @@
+{
+  "title": "Build myapp",
+  "pages": [
+    "architecture",
+    "design-system",
+    "surfaces",
+    "releasing",
+    "template",
+    "setup-log"
+  ]
+}

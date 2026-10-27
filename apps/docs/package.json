@@ -1,0 +1,47 @@
+{
+  "name": "docs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm generate && next dev",
+    "build": "pnpm generate && next build",
+    "generate": "pnpm generate:openapi && pnpm generate:cli && pnpm generate:mcp",
+    "generate:openapi": "tsx scripts/generate-openapi.mts",
+    "generate:cli": "tsx scripts/generate-cli.mts",
+    "generate:mcp": "tsx scripts/generate-mcp.mts",
+    "preview": "serve out",
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "@myapp/tokens": "workspace:*",
+    "@scalar/api-client-react": "2.0.60",
+    "fumadocs-core": "16.17.8",
+    "fumadocs-mdx": "15.4.10",
+    "fumadocs-openapi": "12.5.5",
+    "fumadocs-ui": "16.17.8",
+    "geist": "1.7.2",
+    "json-schema-typed": "9.0.0",
+    "lucide-react": "1.61.0",
+    "next": "16.4.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "shiki": "4.5.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "4.3.3",
+    "@types/mdx": "2.0.14",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.3",
+    "eslint-config-prettier": "10.1.8",
+    "serve": "14.2.6",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
+  },
+  "packageManager": "pnpm@11.7.0"
+}

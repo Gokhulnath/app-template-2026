@@ -5,7 +5,7 @@
   "display_name": "myapp",
   "version": "0.1.0",
   "description": "Check whether the myapp API and its database are up.",
-  "long_description": "myapp's MCP server (`myapp mcp`). Every tool calls the myapp HTTP API; today there's one, get_status, which is read-only.",
+  "long_description": "myapp's MCP server (`myapp mcp`): a stdio proxy to the myapp API's own MCP server (at `<api_url>/mcp`), which is where the tool is actually defined.",
   "author": {
     "name": "Gokhulnath Thirumaran",
     "email": "gokhulnath.thirumaran@gmail.com"

@@ -39,18 +39,27 @@ claude mcp add --scope user myapp -- myapp mcp            # register the MCP ser
 
 ## MCP server (for AI agents)
 
-`myapp mcp` runs an MCP server over stdio. Its tools are hand-written per task (today
-`get_status`, read-only), not generated one-per-endpoint.
+myapp's tool (`get_status`) is defined once, in the API (`apps/api/src/api/mcp.py`), and
+served over MCP (Streamable HTTP) at `/mcp`. Claude Code and any other MCP client reach it
+directly:
 
 ```bash
-# Claude Code: the repo's .mcp.json registers it for sessions opened in this repo.
-# Anywhere else:
+claude mcp add --transport http myapp http://localhost:8000/mcp
+```
+
+`myapp mcp` runs the same tool over stdio: a thin proxy to `/mcp`, with no tool
+definitions here. It's for setups that can't reach the API's HTTP port directly (Claude
+Desktop's `.mcpb` bundle, for one), and it's what the repo's `.mcp.json` would register if
+it weren't already pointed at the API directly.
+
+```bash
 claude mcp add myapp -- uv run --project /path/to/myapp/apps/cli myapp mcp
 # Inspect it by hand:
 npx @modelcontextprotocol/inspector uv run --project apps/cli myapp mcp
 ```
 
-`MYAPP_API_URL` (or `--api-url` before `mcp`) points it at another API.
+`MYAPP_API_URL` (or `--api-url` before `mcp`) points the proxy at another API. A failed
+call raises an MCP error naming the unreachable API instead of crashing.
 
 ## Conventions
 

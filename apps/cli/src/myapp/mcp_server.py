@@ -1,32 +1,25 @@
-"""myapp's MCP server: hand-written, task-oriented tools for AI agents.
+"""myapp's MCP server: a stdio proxy to the API's own MCP server at <api_url>/mcp.
 
-Every tool calls the myapp API through the shared client. There's no logic here, and tools
-are designed per task rather than generated one-per-endpoint.
+Tools are defined once, in the API (apps/api/src/api/mcp.py): their names, descriptions,
+parameters, annotations and validation live there. This file has none of its own -- it
+just forwards every list/call to the API over Streamable HTTP, so `myapp mcp` and the
+.mcpb bundle keep working for local setups without a second copy of the tools, and Claude
+Code can also reach the same tools directly (docs/surfaces.md).
 """
 
-from dataclasses import asdict
-
 from fastmcp import FastMCP
-from mcp.types import ToolAnnotations
-
-from myapp.client import Fetch, fetch_health
-
-INSTRUCTIONS = (
-    "Tools for myapp. Each tool calls the myapp API and returns its answer as data. "
-    "Call get_status first to check that the API and its database are up."
-)
+from fastmcp.server import create_proxy
 
 
-def build_server(api_url: str, fetch: Fetch = fetch_health) -> FastMCP:
-    mcp = FastMCP("myapp", instructions=INSTRUCTIONS)
+def build_server(api_url: str) -> FastMCP:
+    """A FastMCP server named "myapp" that proxies every tool call to f"{api_url}/mcp".
 
-    @mcp.tool(annotations=ToolAnnotations(read_only_hint=True, open_world_hint=False))
-    async def get_status() -> dict[str, str | None]:
-        """Check whether the myapp API and its database are up.
-
-        Returns api_url, status ("ok", "degraded", "error" or "unreachable") and db
-        ("ok", "unavailable", or null when the API didn't answer).
-        """
-        return asdict(await fetch(api_url))
-
-    return mcp
+    The connection is made lazily, on first use (listing tools, or calling one) -- not
+    here -- so a down or unreachable API surfaces as a clear MCP error to whatever called
+    it, rather than stopping `myapp mcp` from starting. provider_error_strategy="raise"
+    is what makes that an error instead of the default "warn", which logs and reports no
+    tools at all -- the wrong answer when there's only ever one provider: the API itself.
+    """
+    return create_proxy(
+        f"{api_url.rstrip('/')}/mcp", name="myapp", provider_error_strategy="raise"
+    )

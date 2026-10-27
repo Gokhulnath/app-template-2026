@@ -1,0 +1,14 @@
+# Next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Fumadocs MDX's generated type-safe source
+.source/
+
+# Generated reference pages (docs/setup-log.md: generated at build time, never committed)
+/.generated/
+/content/docs/reference/api/
+/content/docs/reference/cli.mdx
+/content/docs/reference/mcp-tools.mdx

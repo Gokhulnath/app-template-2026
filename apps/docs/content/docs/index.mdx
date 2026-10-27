@@ -1,0 +1,32 @@
+---
+title: myapp
+description: One FastAPI backend, many thin clients -- and the docs for using and building it.
+---
+
+myapp is one backend with several thin clients: a web app, a desktop app, a CLI and
+terminal UI, an MCP server, and an Agent Skill. Every client talks only to myapp's HTTP
+API; none of them hold business logic or touch the database directly (see
+[Architecture](/docs/build/architecture)).
+
+This site has two halves.
+
+## [Use myapp](/docs/use)
+
+Everyday ways to use myapp: the web and desktop apps, the CLI and TUI, myapp's tool from
+Claude Code over MCP, and the Agent Skill.
+
+## [Build myapp](/docs/build)
+
+How the repo works and how to work on it: architecture, the design system, and the setup
+log -- pulled straight from the `docs/*.md` files in the repository, not copied.
+
+## Reference
+
+Pages generated from the code itself, never hand-written:
+
+- [API reference](/docs/reference/api), from the OpenAPI schema `apps/api` serves at `/openapi.json`
+- [CLI reference](/docs/reference/cli), from `apps/cli`'s Typer app
+- [MCP tools](/docs/reference/mcp-tools), from the tool definitions `apps/api` serves at `/mcp`
+
+Also available as plain text for LLMs and agents: [`/llms.txt`](/llms.txt) (an index) and
+[`/llms-full.txt`](/llms-full.txt) (every page).

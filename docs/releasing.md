@@ -1,4 +1,7 @@
-# Releasing
+---
+title: Releasing
+description: How myapp ships -- one version, release-please, and the release checklist.
+---
 
 myapp ships as one product with one version (`vX.Y.Z`). The API, web, desktop and CLI
 release together, because the desktop app bundles the web build and every client targets

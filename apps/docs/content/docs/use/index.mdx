@@ -1,0 +1,17 @@
+---
+title: Use myapp
+description: Every way to use myapp, for humans and for AI agents.
+---
+
+Every way to use myapp is a thin layer over one HTTP API (see
+[Architecture](/docs/build/architecture)). Pick the one that fits who, or what, is calling.
+
+| For AI agents                                      | For humans                                        |
+| -------------------------------------------------- | ------------------------------------------------- |
+| [Agent Skill](/docs/use/agent-skill)               | [CLI and TUI](/docs/use/cli-and-tui)              |
+| [MCP, from Claude Code](/docs/use/claude-code-mcp) | [Web and desktop apps](/docs/use/web-and-desktop) |
+|                                                    | [API reference](/docs/reference/api)              |
+
+All of them stay in step because they share one source of truth: the API's OpenAPI schema
+defines what exists, and the CLI's one HTTP client is what the Skill and the MCP proxy both
+sit on top of.

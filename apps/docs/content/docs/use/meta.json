@@ -1,0 +1,10 @@
+{
+  "title": "Use myapp",
+  "pages": [
+    "index",
+    "web-and-desktop",
+    "cli-and-tui",
+    "claude-code-mcp",
+    "agent-skill"
+  ]
+}

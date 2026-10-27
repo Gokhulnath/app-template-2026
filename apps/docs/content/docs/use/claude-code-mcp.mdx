@@ -1,0 +1,48 @@
+---
+title: Claude Code and MCP
+description: myapp's tool, served over MCP at /mcp -- the same tool for every agent.
+---
+
+myapp's tool is defined once, in the API, and served over MCP (Streamable HTTP) at `/mcp`:
+hand-written and task-oriented, not generated one-per-endpoint. A tool call runs the same
+code as the matching REST route.
+
+| Tool         | Read-only | Returns                                                    |
+| ------------ | --------- | ---------------------------------------------------------- |
+| `get_status` | yes       | `api_url`, `status` (ok, degraded), `db` (ok, unavailable) |
+
+See the full, generated schema for the tool's input and output at
+[MCP tools](/docs/reference/mcp-tools).
+
+## From Claude Code
+
+```bash
+# In this repo: already registered by .mcp.json (an HTTP server).
+# Elsewhere, against a running API:
+claude mcp add --transport http myapp http://localhost:8000/mcp
+```
+
+Then use `/mcp` in Claude Code to see the connection, or just ask Claude to check myapp's
+status -- it reaches for the tool on its own.
+
+## A stdio proxy, for setups that can't reach the API's HTTP port
+
+`myapp mcp` runs the same tool over **stdio**, as a thin proxy to `/mcp` with no tool
+definitions of its own (Claude Desktop's `.mcpb` bundle, for one):
+
+```bash
+claude mcp add myapp -- uv run --project /path/to/myapp/apps/cli myapp mcp
+```
+
+## Trying it by hand
+
+```bash
+npx @modelcontextprotocol/inspector                               # against /mcp (HTTP)
+npx @modelcontextprotocol/inspector uv run --project apps/cli myapp mcp   # against stdio
+```
+
+A failed call (a database that's down) comes back as a tool error carrying the same
+message the REST API gives.
+
+MCP OAuth, so Claude Code can sign in once to a deployed API, comes once the API has real
+auth -- see [Architecture](/docs/build/architecture#api-conventions).

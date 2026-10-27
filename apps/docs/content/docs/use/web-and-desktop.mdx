@@ -1,0 +1,40 @@
+---
+title: Web and desktop apps
+description: myapp's visual clients -- a browser tab, and the same app in a native window.
+---
+
+## Web app
+
+```bash
+pnpm dev:web   # http://localhost:3000, or the next free port
+```
+
+The web app is a static export (plain HTML/CSS/JS in `apps/web/out/`): it fetches data from
+the API in the browser, through `src/lib/api.ts`, the only file that knows the API's URL
+(`NEXT_PUBLIC_API_URL`, default `http://localhost:8000`). There's no server behind the web
+app itself, which is what makes it possible to bundle the exact same build into a desktop
+app.
+
+Everything you see is built from the design system (`@myapp/ui`), so it looks and behaves
+the same as the terminal UI and the desktop app -- see
+[the design system](/docs/build/design-system).
+
+## Desktop app
+
+```bash
+pnpm dev:desktop
+```
+
+The desktop app is a [Tauri](https://tauri.app) shell around the same web export: no second
+UI to maintain, about 30 MB instead of bundling a whole browser runtime. It talks to the
+same API as the web app, over the origins its Content-Security-Policy allows
+(`tauri://localhost` packaged, `http://127.0.0.1:1430`+ in `tauri dev`).
+
+A production build must add its own packaged origin to the API's CORS settings; see
+[Architecture](/docs/build/architecture#api-conventions) for the exact rule.
+
+## Status
+
+Today both apps show only the API's health (ok, degraded, or unreachable) -- the starting
+point every real feature builds on. See
+[Deliberately left out](/docs/build/template#deliberately-left-out) for what comes next.

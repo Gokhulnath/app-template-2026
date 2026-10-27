@@ -5,6 +5,7 @@
     "prepare": "lefthook install",
     "dev": "pnpm --recursive --parallel dev",
     "dev:web": "pnpm --filter web dev",
+    "dev:docs": "pnpm --filter docs dev",
     "dev:api": "pnpm --filter api dev",
     "dev:desktop": "pnpm --filter desktop tauri dev",
     "storybook": "pnpm --filter @myapp/ui storybook",

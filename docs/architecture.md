@@ -1,4 +1,7 @@
-# Architecture
+---
+title: Architecture
+description: One backend, many thin clients -- the pieces, the conventions, and what's built.
+---
 
 ## One backend, many thin clients
 
@@ -151,5 +154,6 @@ use it, since proxying is an MCP-to-MCP concern, not an HTTP-to-API one.
 | Desktop: Tauri                                                     | done (`apps/desktop`)                                         |
 | Quality: Prettier, tsc/pyright, Lefthook, CI, Renovate             | done; Renovate acts only once its GitHub App is installed     |
 | Template: `docs/template.md`, `scripts/rename-project.sh`          | done                                                          |
+| Docs site: Fumadocs, use/build/reference, `llms.txt`               | done (`apps/docs`)                                            |
 | Releases: release-please, desktop installers (macOS/Windows/Linux) | done; installers wait for a production API URL in Doppler prd |
 | Auth, generated clients, mobile                                    | later, when a real feature needs them                         |

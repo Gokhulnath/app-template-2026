@@ -18,3 +18,11 @@ packages/tokens/dist/
 apps/cli/src/myapp/theme.json
 # Storybook's static build (`pnpm build:storybook`).
 packages/ui/storybook-static/
+# apps/docs: Fumadocs MDX's generated type-safe source, next-env.d.ts, and the reference
+# pages generated at build time (apps/docs/scripts) -- never committed.
+apps/docs/.source/
+apps/docs/next-env.d.ts
+apps/docs/.generated/
+apps/docs/content/docs/reference/api/
+apps/docs/content/docs/reference/cli.mdx
+apps/docs/content/docs/reference/mcp-tools.mdx

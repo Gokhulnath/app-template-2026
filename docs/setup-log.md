@@ -1,4 +1,7 @@
-# Setup log
+---
+title: Setup log
+description: Every step taken to build this monorepo, in order, with the exact commands.
+---
 
 Every step taken to build this monorepo, in order, with the exact commands and the reason
 for each choice. Each numbered step is one commit, so `git log --reverse --oneline` lists
@@ -1831,3 +1834,134 @@ here:
   over HTTP. `apps/cli/tests/test_mcp.py` now tests only the CLI's own job (forwarding
   tools from an upstream, reporting an unreachable one clearly) against an in-process fake
   upstream (`fastmcp.utilities.tests.run_server_async`).
+
+## Add the docs site
+
+Commit: `feat(docs): add the docs site with Fumadocs`
+
+Ported from donna's docs-site PR (its step 79): `apps/docs`, Next.js 16.4 (App Router,
+static export, same shape as `apps/web`) with [Fumadocs](https://fumadocs.dev). Adapted to
+this template's smaller surface -- one API operation (`/health`) and one MCP tool
+(`get_status`), and no chat agent -- so there's no `docs/agent.md`, no `docs/realtime.md`
+and no "chatting with the agent" page here; everything else carries over unchanged,
+including the exact package versions (checked live with `npm view <pkg> version`, since
+training data predates this library's fast-moving 16.x line):
+
+```json
+{
+  "fumadocs-core": "16.17.8",
+  "fumadocs-mdx": "15.4.10",
+  "fumadocs-openapi": "12.5.5",
+  "fumadocs-ui": "16.17.8",
+  "shiki": "4.5.0",
+  "zod": "4.6.7",
+  "lucide-react": "1.61.0",
+  "@scalar/api-client-react": "2.0.60",
+  "json-schema-typed": "9.0.0",
+  "geist": "1.7.2",
+  "tsx": "4.23.15"
+}
+```
+
+`next`, `react`, `react-dom`, `typescript`, `eslint`, `eslint-config-prettier`,
+`@types/node` and `tailwindcss` match the exact versions `apps/web`/`packages/ui` already
+pin, not the newer majors npm now serves (`typescript@7`, `eslint@10`): an unrelated
+repo-wide upgrade has no place riding on this PR. `tsx` has no precedent elsewhere in this
+template (no agent-worker equivalent), so it's pinned to the version donna's own
+`apps/agent-worker` uses.
+
+- `next.config.mjs` (not `.ts`): Fumadocs MDX is ESM-only and its own guide recommends
+  `.mjs` for reliable resolution.
+- `lib/source.ts`: one Fumadocs MDX collection (the Macro API, no separate
+  `source.config.ts`), `includeProcessedMarkdown: true` (needed for `llms.txt`), the
+  `openapiPlugin()` loader plugin, and `docsLlms` (`llms()` from `fumadocs-core/source`).
+- `app/llms.txt/route.ts`, `app/llms-full.txt/route.ts`: static (`revalidate = false`),
+  same as donna.
+- Search: `app/api/search/route.ts` uses `createFromSource(source).staticGET` (prerendered
+  to a static JSON index, since static export can't serve a live search route), and
+  `components/search.tsx` swaps the default dialog for one on `useStaticSearch()`.
+- Fonts: `geist` (the same package `packages/ui` vendors, not a second copy of the font
+  files) through `next/font/local`'s `geist/font/sans` and `geist/font/mono`.
+
+### Reference pages: generated at build time, not committed
+
+Same decision as donna, for the same reason: `apps/api` and `apps/cli` change as the
+template grows, a committed copy would drift silently, and CI already installs both `uv`
+environments before `pnpm build` runs (no new CI step needed). All three read the running
+code directly and need neither a live API nor a database:
+
+- `apps/api/scripts/export_openapi.py` (new): `create_app().openapi()`, no server --
+  today that's one operation, `/health`.
+- `apps/api/scripts/export_mcp_tools.py` (new): builds `api.mcp.build_mcp_server()` (the
+  same lazy-engine trick) and lists its tools -- today that's `get_status` alone.
+- `apps/docs/scripts/generate-openapi.mts`, `generate-cli.mts`, `generate-mcp.mts`: shell
+  out to the two scripts above and to Typer's own `utils docs` command
+  (`uv run typer myapp.cli utils docs --name myapp`, ships with the `typer` dependency
+  `apps/cli` already has), and feed the result to `fumadocs-openapi`'s `generateFiles()` or
+  a small Markdown renderer.
+
+### "Build myapp": symlinked, not copied
+
+`content/docs/build` is a symlink to `../../../../docs` (the repository's own `docs/`
+folder), not a copy. `docs/meta.json` (new) titles and orders the section:
+`architecture`, `design-system`, `surfaces`, `releasing`, `template`, `setup-log` -- this
+template has no `agent.md` or `realtime.md` to include. The only changes made to the real
+files: frontmatter (`title`/`description`) added to all six, and `docs/template.md`'s two
+relative links to `setup-log.md` become `/docs/build/setup-log`.
+
+`docs/template.md` itself gets two small corrections beyond that: its "Deliberately left
+out" table no longer lists "A docs site and `llms.txt`" (its stated trigger, "the first
+real resource beyond `/health`", doesn't hold up -- a docs site is useful on its own even
+with only `/health` to document, so it's ported ahead of that trigger rather than waiting
+for it), and its "What you get" table gains a row for `apps/docs`.
+
+### Design system: `@myapp/tokens`, not `@myapp/ui`
+
+`apps/docs` depends on `@myapp/tokens` directly (not `@myapp/ui`: Fumadocs' own components
+replace it here). `app/global.css` maps `@myapp/tokens`'s `--ds-color-*` custom properties
+onto Fumadocs' `--color-fd-*` ones, plus the generic `--font-sans`, `--font-mono` and
+`--radius-*` Tailwind theme keys. The color mapping is a plain
+`:root, .dark { --color-fd-background: var(--ds-color-bg); ... }` rule, not an `@theme`
+block: Tailwind hoists every `@theme` block into one merged `:root` rule ahead of
+`fumadocs-ui/css/neutral.css`'s own plain `.dark { ... }` rule, which then wins in dark
+mode regardless of import order (found and fixed in donna's own build; verified it holds
+here with the identical token values `packages/tokens` already produces). Two tokens have
+no myapp equivalent and keep Fumadocs' own default: the dialog overlay tint, and the "idea"
+callout color.
+
+### Wiring
+
+- Root `package.json`: `dev:docs` (`pnpm --filter docs dev`), matching `dev:web`/`dev:api`.
+  No other root script changes -- `build`, `lint`, `typecheck` and `test` already run
+  every app `--recursive --if-present`, and CI's existing `uv`/Node setup already covers
+  what `pnpm generate` needs.
+- `apps/docs/.gitignore` (nested, so also listed in the root `.prettierignore`, which only
+  reads the root `.gitignore`): `.next/`, `out/`, `.source/`, `next-env.d.ts`, and the
+  generated reference content above.
+- `pnpm-workspace.yaml`: `vue-demi: false` (a transitive dependency of
+  `@scalar/api-client-react`; its postinstall only copies a Vue 2/3 shim neither we nor
+  Scalar's React build touch). The first `pnpm install` also had pnpm add its own
+  `minimumReleaseAgeExclude: [lucide-react@1.62.0]` entry here, since 1.62.0 was under
+  pnpm's default one-day minimum release age at the time. Turning off that check for a
+  brand-new package is exactly the supply-chain risk it exists to catch, so `lucide-react`
+  is pinned to `1.61.0` instead (comfortably past the cutoff, and `fumadocs-ui`'s own peer
+  requirement is a bare `*`) and the exclusion is gone. A violating entry already in the
+  lockfile blocks pnpm from resolving past it even to fix that one line, and `pnpm`'s own
+  suggested recovery (`pnpm clean --lockfile`) re-resolves the whole tree, picking up
+  newer patch releases of unrelated transitive dependencies along the way -- a docs PR has
+  no business touching other apps' dependencies, so instead: `git checkout origin/main --
+pnpm-lock.yaml` (main's lockfile never had the too-new entry) then a plain
+  `pnpm install`, which keeps every existing resolution and adds only what `apps/docs`
+  needs (plus a few shared packages, already at the same version elsewhere, gaining an
+  additional peer-dependency-suffixed entry for `apps/docs`'s own peer combination -- not
+  a version change).
+- `docs/architecture.md`'s status table, `README.md`'s app table and root-scripts table,
+  and `apps/docs/README.md` (new, matching `apps/web/README.md`'s shape).
+
+Verify: `pnpm --filter docs generate && pnpm --filter docs build` (21 static pages,
+including `/llms.txt`, `/llms-full.txt` and the one generated reference page per source),
+`pnpm --filter docs lint` and `typecheck` clean, root `pnpm lint`/`typecheck`/`build`
+clean. `pnpm test`/`pnpm verify` need the local Supabase stack; this step touches neither
+Python app nor the database, so the checks above cover it. The scaffold itself is
+unchanged from donna's own docs-site PR, where it was checked live in a browser -- nav,
+search, the generated reference pages, `llms.txt`, and both themes.

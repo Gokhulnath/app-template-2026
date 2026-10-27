@@ -1,4 +1,7 @@
-# Using myapp
+---
+title: Surfaces
+description: Every way to use myapp -- the Skill, MCP, the CLI and the API.
+---
 
 Every way to use myapp is a thin layer over one HTTP API. Pick the one that fits who, or
 what, is calling.

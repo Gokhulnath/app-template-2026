@@ -81,6 +81,28 @@ MCP → API. The CLI, the TUI and the MCP server share one HTTP client module.
   - `anon` keeps `USAGE` on the (empty) `public` schema through the Postgres default grant
     to `PUBLIC`; revoking that would also affect Supabase's internal roles
 
+### Connections
+
+- Each API process keeps a pool: `DB_POOL_SIZE` connections stay open (default 5), and up to
+  `DB_MAX_OVERFLOW` more open under load and close when idle (default 5). There's no
+  long-lived listener connection yet (no `/v1/events` or similar), so one process uses at
+  most size + overflow = **10** connections. A route that later holds its own extra
+  connection (a `LISTEN`, say) should add it to this budget.
+- A caller that finds every connection busy waits `DB_POOL_TIMEOUT` seconds (default 5),
+  then SQLAlchemy raises its own `TimeoutError` (`sqlalchemy.exc.TimeoutError`, not the
+  built-in one) rather than hanging. It's caught the same as a down database wherever a
+  connection is used (see `api.db.database_ok`). The first route that depends on the
+  database directly (there are none yet; see `docs/template.md`) should catch it the same
+  way and turn it into a `503` with `Retry-After: 1`, rather than let a client wait the full
+  pool timeout for an error.
+- **The budget:** API processes × 10, plus anything else that connects (a future worker,
+  the Supabase dashboard, migrations), must stay under the database's connection limit,
+  which depends on the Supabase compute size. Check it in the dashboard before adding
+  replicas, and lower the pool settings rather than raising the limit.
+- Production uses the direct connection. If the replicas outgrow it, switch to Supabase's
+  **session** pooler (port 5432). Never use the transaction pooler (port 6543): it breaks
+  `LISTEN` and asyncpg's prepared statements.
+
 ## Secrets
 
 - Doppler, in a personal workplace, holds real secrets. The CLI login is scoped to

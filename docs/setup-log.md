@@ -1979,10 +1979,12 @@ owns, each allowlisted in `.gitignore`:
 /.agents/
 /.grok/
 /.hermes/
-/skills/
+/skills/*
+!/skills/myapp/
 /skills-lock.json
 /.clerk/
 ```
 
 `.clerk/` holds Clerk's local claim and keyless files, for apps that add Clerk. A new skill of
-the repo's own gets a `!/.claude/skills/<name>/` line next to `test-audit`.
+the repo's own gets a `!/.claude/skills/<name>/` line next to `test-audit`. `skills/` is the
+same: `skills/myapp/`, the repo's own Agent Skill, stays tracked, and an installer's copies don't.

@@ -33,6 +33,20 @@ htmlcov/
 .claude/settings.local.json
 .claude/worktrees/
 
+# Agent skills that tools install (the `skills` CLI, Clerk's CLI) are per machine, never
+# committed: they stay on the machine that installed them. The repo commits only its own
+# skills, each listed here with a `!` line.
+/.claude/skills/*
+!/.claude/skills/test-audit/
+/.agents/
+/.grok/
+/.hermes/
+/skills/
+/skills-lock.json
+
+# Clerk's local claim and keyless files
+/.clerk/
+
 # Written by scripts/build-packages.sh for release builds; never committed.
 apps/cli/src/myapp/release_api_url.txt
 

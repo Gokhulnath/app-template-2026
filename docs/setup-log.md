@@ -1965,3 +1965,24 @@ clean. `pnpm test`/`pnpm verify` need the local Supabase stack; this step touche
 Python app nor the database, so the checks above cover it. The scaffold itself is
 unchanged from donna's own docs-site PR, where it was checked live in a browser -- nav,
 search, the generated reference pages, `llms.txt`, and both themes.
+
+## Keep third-party agent skills out of git
+
+Ported from donna. Skills that tools install into a checkout (the `skills` CLI writes a copy
+per agent: `.agents/`, `.claude/skills/<name>`, `.grok/`, `.hermes/`, `skills/` and a
+`skills-lock.json`) are per machine, so the repo ignores them and commits only the skills it
+owns, each allowlisted in `.gitignore`:
+
+```text
+/.claude/skills/*
+!/.claude/skills/test-audit/
+/.agents/
+/.grok/
+/.hermes/
+/skills/
+/skills-lock.json
+/.clerk/
+```
+
+`.clerk/` holds Clerk's local claim and keyless files, for apps that add Clerk. A new skill of
+the repo's own gets a `!/.claude/skills/<name>/` line next to `test-audit`.

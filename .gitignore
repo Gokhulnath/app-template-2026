@@ -41,7 +41,8 @@ htmlcov/
 /.agents/
 /.grok/
 /.hermes/
-/skills/
+/skills/*
+!/skills/myapp/
 /skills-lock.json
 
 # Clerk's local claim and keyless files

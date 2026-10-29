@@ -2010,11 +2010,17 @@ for exactly that, unread by any code today. Standing up GoTrue and Mailpit now, 
 dev ports nothing listens on yet, would be config nobody exercises and nobody would
 notice drifting the next time donna's own auth setup changes before this template adds
 the feature -- the opposite of this log's "ported ahead of its own trigger because it's
-useful on its own" bar (see "Add the docs site," above). The CI, `lefthook.yml` and
-`pnpm verify` changes from that same donna era are already redundant here for the same
-reason: `supabase/config.toml` already disables Storage, Realtime, the Data API, the
-pooler and the analytics pair on its own, so there's no trimmed-container script to
-port, and no `signing_keys_path` to generate a key for.
+useful on its own" bar (see "Add the docs site," above). The one piece of CI that entry
+109 did touch -- a `pnpm db:keys` step ahead of `supabase db start`, because
+`signing_keys_path` is read even by that bare command once it's set -- is redundant here
+for the same reason: this template's `supabase/config.toml` still has the default
+scaffolded `[auth]` block with `signing_keys_path` left commented out, so no code path
+reads it and there's no key to generate. Entry 109 never touched `lefthook.yml` or
+`scripts/verify.sh` (checked against donna's own history, not assumed); the two
+`lefthook.yml` jobs added in this port range -- `eslint-channels` (entry 89) and
+`eslint-eve` (entry 97) -- belong to `apps/channels` and `apps/eve-worker`, and are
+excluded only because this template has neither app, not for any signing-key or
+trimmed-container reason.
 
 The one change that did apply cleanly, independent of any unbuilt feature:
 `scripts/with-doppler.sh` gained `WITH_DOPPLER_PRESERVE_ENV`, a comma-separated list of

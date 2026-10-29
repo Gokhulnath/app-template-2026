@@ -125,7 +125,10 @@ use it, since proxying is an MCP-to-MCP concern, not an HTTP-to-API one.
     `doppler run --config prd -- <cmd>`
   - **`stg`**: exists but stays empty until a staging deploy is needed
 - `scripts/with-doppler.sh` injects secrets only when `doppler me` matches the workplace
-  slug in `.doppler-workplace`. Otherwise it stops before running anything.
+  slug in `.doppler-workplace`. Otherwise it stops before running anything. An app that
+  needs its own value for a name another app also uses (`DATABASE_URL`, say, connecting
+  as a different role) sets `WITH_DOPPLER_PRESERVE_ENV` to that name in its own
+  dev/start script, rather than renaming the shared variable for everyone else.
 - Every app also runs without Doppler: committed `.env.example` files and code defaults hold
   safe local-development values.
 - Nothing secret is ever committed, put in a `NEXT_PUBLIC_*` variable or pasted in chat.

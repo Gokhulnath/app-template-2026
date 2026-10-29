@@ -7,6 +7,15 @@
 # workplace named in .doppler-workplace, so secrets never come from the wrong account.
 #
 # Used by each app's dev/build/start scripts, e.g. `../../scripts/with-doppler.sh next dev`.
+#
+# WITH_DOPPLER_PRESERVE_ENV: a comma-separated list of secret names for which an
+# already-set shell env var wins over Doppler's own value (passed straight through as
+# `doppler run --preserve-env`). Every app shares one Doppler config, and
+# docs/architecture.md's "Secrets" section says variable names are what keeps them
+# apart -- but a name two apps both need, such as `DATABASE_URL`, is deliberately the
+# same everywhere. A future app that needs its own value for such a name (connecting as
+# a different database role, say) sets this in its own dev/start script rather than
+# renaming the shared variable for everyone else.
 set -euo pipefail
 
 root=$(cd "$(dirname "$0")/.." && pwd)
@@ -23,6 +32,11 @@ if command -v doppler >/dev/null 2>&1 &&
         "a scoped token, e.g. \`doppler login --scope $(dirname "$root") --yes\`." >&2
       exit 1
     fi
+  fi
+  # Not an array: macOS ships bash 3.2, where "${arr[@]}" on a zero-element array is an
+  # unbound-variable error under `set -u`.
+  if [ -n "${WITH_DOPPLER_PRESERVE_ENV:-}" ]; then
+    exec doppler run --preserve-env="$WITH_DOPPLER_PRESERVE_ENV" -- "$@"
   fi
   exec doppler run -- "$@"
 fi

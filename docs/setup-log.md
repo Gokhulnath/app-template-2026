@@ -1988,3 +1988,45 @@ owns, each allowlisted in `.gitignore`:
 `.clerk/` holds Clerk's local claim and keyless files, for apps that add Clerk. A new skill of
 the repo's own gets a `!/.claude/skills/<name>/` line next to `test-audit`. `skills/` is the
 same: `skills/myapp/`, the repo's own Agent Skill, stays tracked, and an installer's copies don't.
+
+## Port review: donna's setup log since the last port, through its own entry 118
+
+Donna's `docs/setup-log.md` entries since the last port here (its own entry 85 through 118) are almost entirely product features built on apps and schema this template
+doesn't have: a full sign-in implementation (first Clerk, then Supabase Auth, then
+Clerk's removal), the `apps/eve-worker` agent runtime, `apps/channels`' messaging
+transport, background tasks, and the database migrations and MCP tools those features
+need. None of that is a setup/tooling change in the sense this log tracks -- it's
+product work that happens to live in donna, not myapp.
+
+One candidate looked like infra on its own: donna's entry 109, running Supabase Auth
+(GoTrue, Kong, Mailpit) locally for development. It isn't ported. Everything in it --
+the custom `[auth]` site URL and redirect origins, the OTP email templates, the
+desktop CSP addition, `docs/auth.md`'s "Local development" section -- exists to support
+a sign-in UI that reads a code out of Mailpit and a FastAPI layer that verifies the
+resulting token. This template has neither yet: `docs/architecture.md`'s own status
+table already lists "Auth, generated clients, mobile" as arriving "later, when a real
+feature needs them," and `SUPABASE_URL` is already reserved in the settings/env table
+for exactly that, unread by any code today. Standing up GoTrue and Mailpit now, tuned to
+dev ports nothing listens on yet, would be config nobody exercises and nobody would
+notice drifting the next time donna's own auth setup changes before this template adds
+the feature -- the opposite of this log's "ported ahead of its own trigger because it's
+useful on its own" bar (see "Add the docs site," above). The CI, `lefthook.yml` and
+`pnpm verify` changes from that same donna era are already redundant here for the same
+reason: `supabase/config.toml` already disables Storage, Realtime, the Data API, the
+pooler and the analytics pair on its own, so there's no trimmed-container script to
+port, and no `signing_keys_path` to generate a key for.
+
+The one change that did apply cleanly, independent of any unbuilt feature:
+`scripts/with-doppler.sh` gained `WITH_DOPPLER_PRESERVE_ENV`, a comma-separated list of
+secret names Doppler should leave the shell's own value for
+(`doppler run --preserve-env=...`). Donna added it so one app's dev script could keep its
+own value for a name another app's config also sets, both sharing the same Doppler
+project. `docs/architecture.md`'s "Secrets" section gained one line pointing at it. No
+code anywhere calls it yet -- it's a documented escape hatch for the day a second app
+needs it, the same shape `SUPABASE_URL` already is for Auth, costing nothing while
+unused.
+
+Verify: `pnpm lint` and `pnpm typecheck` clean (no app code touched). `pnpm test` and
+`pnpm build` were not run against the local database here -- this change touches neither
+a Python app nor the schema, and donna's own running Supabase stack holds `:54321`-
+`:54324` already, so CI is relied on for the DB-backed suites.

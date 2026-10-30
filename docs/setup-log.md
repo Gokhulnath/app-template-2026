@@ -2063,3 +2063,57 @@ above, both clean. `pnpm lint` and `pnpm typecheck` clean (no app code touched).
 test` and `pnpm build` were not run against the local database here -- this change
 touches neither a Python app nor the schema, and donna's own running Supabase stack
 holds the local Postgres ports already, so CI is relied on for the DB-backed suites.
+
+## Add the end-to-end test harness
+
+`packages/e2e`: a Playwright suite that drives a real browser against this template's
+own API and web app, never the developer's running `pnpm dev` stack. Playwright Test is
+pinned to `1.64.0`, the same line `packages/ui`'s own browser tests already use.
+
+This template has no authentication or database requirement yet
+(`docs/architecture.md`'s status table), so the one spec here (`specs/smoke.spec.ts`) is
+a smoke test rather than a sign-in flow: it loads the home page and asserts on the
+browser's own call to `/health`, through the already-shipped `api-status.tsx` component
+-- no hook added to `apps/web` only for this suite (`CLAUDE.md`'s "Tests": no test-only
+hooks in production code).
+
+- `playwright.config.ts`'s `webServer` always starts the harness's own `apps/api`
+  (`uv run fastapi dev`) and `apps/web`, on ports `8580`/`3580` -- clear of `next dev`'s
+  and `fastapi dev`'s own defaults (`3000`/`8000`), overridable through `E2E_API_URL`/
+  `E2E_WEB_URL` (`src/env.ts`).
+- `apps/web` ships as a static export, and Next 16 refuses a second `next dev` in the
+  same project directory regardless of port, so the web entry builds the real export
+  into its own directory and serves it with a small built-in static file server
+  (`scripts/build-and-serve-web.mjs`, `scripts/static-server.mjs` -- no new runtime
+  dependency added to `apps/web`), resolving clean URLs the way a production static host
+  does. `apps/web/next.config.ts` gained one line, `distDir:
+process.env.MYAPP_WEB_DIST_DIR || undefined`, a no-op for `next dev`/`pnpm build`
+  (unset, the export still lands in `out/` exactly as before) and the one thing that
+  lets this suite's own build land somewhere else. The web entry's command also sets
+  `WITH_DOPPLER_PRESERVE_ENV=NEXT_PUBLIC_API_URL`: without it, `doppler run` (which
+  `scripts/with-doppler.sh` execs into) would overwrite this entry's own
+  `NEXT_PUBLIC_API_URL` with `apps/web`'s own Doppler secret before `next build` ever
+  saw it.
+- The API entry's readiness check polls `/openapi.json`, not `/health`: this template's
+  `/health` reports `503` whenever the database is down, a status Playwright's own
+  `webServer` readiness probe (`playwright-core`'s `isURLAvailable`, which only accepts
+  `200`-`403`) treats as "not up yet" and would wait on until timeout -- even though the
+  process is in fact up and the smoke spec only needs it reachable. `/openapi.json` is
+  always `200` once the app has booted, database or no database. Confirmed live: with no
+  local database running at all, `pnpm e2e` still starts both servers and the spec
+  passes against the `degraded` `/health` body.
+- Root `package.json` gains `"e2e": "pnpm --filter e2e pw"`; `scripts/verify.sh` gains a
+  `--e2e` flag (off by default, the same opt-in shape as the rest of the script) that
+  runs it as one more step.
+- `.github/workflows/e2e.yml` (new): `workflow_dispatch` and a nightly `schedule` only,
+  never `pull_request`/`push` -- a cold `next build` is slower than the PR gate should
+  pay for on every push. No secrets and no database: this job installs Chromium for
+  Playwright and runs `pnpm e2e` directly.
+- `docs/testing.md` (new), listed in `docs/meta.json` right after `surfaces`: what the
+  suite proves, the isolation rules above, why it's opt-in, and what CI runs.
+
+Verify: `pnpm lint` and `pnpm typecheck` clean. `pnpm e2e` run three times in a row,
+green, on ports `8510`/`3510` (`E2E_API_URL`/`E2E_WEB_URL` overrides, to stay off this
+machine's own reserved port blocks for an unrelated concurrent project) with no local
+database running at all. `pnpm build` unaffected: still writes `apps/web/out`, never
+`apps/web/dist-e2e`.

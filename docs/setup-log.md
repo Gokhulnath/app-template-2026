@@ -2036,3 +2036,30 @@ Verify: `pnpm lint` and `pnpm typecheck` clean (no app code touched). `pnpm test
 `pnpm build` were not run against the local database here -- this change touches neither
 a Python app nor the schema, and donna's own running Supabase stack holds `:54321`-
 `:54324` already, so CI is relied on for the DB-backed suites.
+
+## Warn when a `doppler.yaml` app's setup was never run
+
+Ported from a later entry in donna's own setup log (its own PR, mostly an
+`apps/eve-worker`-specific fix this template doesn't have and isn't porting): the one
+piece that's general-purpose, `scripts/with-doppler.sh`'s handling of a folder
+`doppler.yaml` lists but that `doppler setup --no-interactive` was never run in. A fresh
+worktree, or an app just added to `doppler.yaml`, otherwise falls back to `.env` with no
+signal at all -- indistinguishable from "this app just has no secrets" until something
+that needed a real secret fails with no obvious reason why.
+
+- `scripts/with-doppler.sh`: when doppler is installed, logged in to this project's own
+  workplace, `doppler.yaml` lists the current folder, but no `doppler setup` has run
+  there yet, prints one stderr line naming the folder and the fix before falling back to
+  `.env` -- silent in CI, when doppler isn't installed, isn't logged in, is logged into
+  the wrong workplace, or the folder isn't listed at all. Proven with a fake `doppler`
+  stub on `PATH` (no real doppler calls): the hint fires exactly once, in the one case
+  that should show it, and stays silent in every quiet case above; the existing
+  configured-and-working path and the existing wrong-workplace `exit 1` path are both
+  unchanged (same fake stub, both still behave exactly as before).
+- `docs/architecture.md`'s "Secrets" section gained one line describing the hint.
+
+Verify: `scripts/with-doppler.sh`'s own `bash -n` syntax check and the fake-stub proof
+above, both clean. `pnpm lint` and `pnpm typecheck` clean (no app code touched). `pnpm
+test` and `pnpm build` were not run against the local database here -- this change
+touches neither a Python app nor the schema, and donna's own running Supabase stack
+holds the local Postgres ports already, so CI is relied on for the DB-backed suites.

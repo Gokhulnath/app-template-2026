@@ -131,6 +131,11 @@ use it, since proxying is an MCP-to-MCP concern, not an HTTP-to-API one.
   dev/start script, rather than renaming the shared variable for everyone else.
 - Every app also runs without Doppler: committed `.env.example` files and code defaults hold
   safe local-development values.
+- An app folder `doppler.yaml` lists but that `doppler setup --no-interactive` was never
+  run in (a fresh worktree, an app just added to `doppler.yaml`) falls back to `.env`
+  exactly like that, which looks identical to "this app just has no secrets." When the
+  current login is this project's own workplace, `scripts/with-doppler.sh` prints one
+  line naming the folder and the fix, once, instead of staying silent.
 - Nothing secret is ever committed, put in a `NEXT_PUBLIC_*` variable or pasted in chat.
 
 | Key                          | `dev`                      | `prd`                                                                           |

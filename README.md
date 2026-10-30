@@ -36,26 +36,27 @@ API.
 
 ## Root scripts
 
-| Command                                                | Runs                                                                            |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| `pnpm dev`                                             | every app's dev server, in parallel                                             |
-| `pnpm dev:web`                                         | Next.js dev server                                                              |
-| `pnpm dev:docs`                                        | the docs site's dev server                                                      |
-| `pnpm dev:api`                                         | `fastapi dev` (port 8000; override with `--port`)                               |
-| `pnpm dev:desktop` / `build:desktop`                   | the Tauri desktop app (needs Rust)                                              |
-| `pnpm build:desktop:linux`                             | the desktop app's Linux bundles, built in Docker (`--amd64` for x86_64)         |
-| `pnpm build:packages`                                  | a release's CLI, MCP bundle and Skill packages, into `dist/release/`            |
-| `pnpm storybook` / `build:storybook`                   | the design system's Storybook (port 6006) / its static build                    |
-| `pnpm tokens:build`                                    | regenerate the design tokens' CSS, Tailwind theme, TypeScript and TUI themes    |
-| `pnpm build`                                           | static export of the web app into `apps/web/out/`                               |
-| `pnpm lint`                                            | Prettier, ESLint (web, ui), ruff (api, cli), and that the tokens are up to date |
-| `pnpm typecheck`                                       | `tsc` (web, ui), pyright (api, cli)                                             |
-| `pnpm format`                                          | Prettier, plus ruff fix and format                                              |
-| `pnpm test`                                            | pytest with coverage and its floor (api, cli), every Storybook story (ui)       |
-| `pnpm verify`                                          | the pre-merge check: lint, types, tests, builds, macOS and Linux desktop builds |
-| `pnpm myapp …`                                         | the `myapp` CLI, e.g. `pnpm myapp status`                                       |
-| `pnpm db:start` / `db:stop` / `db:reset` / `db:status` | local Supabase stack                                                            |
-| `pnpm db:migration <name>`                             | new SQL migration in `supabase/migrations/`                                     |
+| Command                                                | Runs                                                                                                           |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                             | every app's dev server, in parallel                                                                            |
+| `pnpm dev:web`                                         | Next.js dev server                                                                                             |
+| `pnpm dev:docs`                                        | the docs site's dev server                                                                                     |
+| `pnpm dev:api`                                         | `fastapi dev` (port 8000; override with `--port`)                                                              |
+| `pnpm dev:desktop` / `build:desktop`                   | the Tauri desktop app (needs Rust)                                                                             |
+| `pnpm build:desktop:linux`                             | the desktop app's Linux bundles, built in Docker (`--amd64` for x86_64)                                        |
+| `pnpm build:packages`                                  | a release's CLI, MCP bundle and Skill packages, into `dist/release/`                                           |
+| `pnpm storybook` / `build:storybook`                   | the design system's Storybook (port 6006) / its static build                                                   |
+| `pnpm tokens:build`                                    | regenerate the design tokens' CSS, Tailwind theme, TypeScript and TUI themes                                   |
+| `pnpm build`                                           | static export of the web app into `apps/web/out/`                                                              |
+| `pnpm lint`                                            | Prettier, ESLint (web, ui), ruff (api, cli), and that the tokens are up to date                                |
+| `pnpm typecheck`                                       | `tsc` (web, ui), pyright (api, cli)                                                                            |
+| `pnpm format`                                          | Prettier, plus ruff fix and format                                                                             |
+| `pnpm test`                                            | pytest with coverage and its floor (api, cli), every Storybook story (ui)                                      |
+| `pnpm verify` (`--no-desktop`, `--e2e`)                | the pre-merge check: lint, types, tests, builds, desktop builds; `--e2e` also runs `pnpm e2e` (off by default) |
+| `pnpm e2e`                                             | Playwright smoke test against the harness's own API and web app (`docs/testing.md`)                            |
+| `pnpm myapp …`                                         | the `myapp` CLI, e.g. `pnpm myapp status`                                                                      |
+| `pnpm db:start` / `db:stop` / `db:reset` / `db:status` | local Supabase stack                                                                                           |
+| `pnpm db:migration <name>`                             | new SQL migration in `supabase/migrations/`                                                                    |
 
 ## Docs
 

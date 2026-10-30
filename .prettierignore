@@ -3,6 +3,9 @@
 **/.next/
 **/out/
 apps/web/next-env.d.ts
+# packages/e2e's own static export (MYAPP_WEB_DIST_DIR, docs/testing.md), left on disk by
+# every `pnpm e2e` run.
+apps/web/dist-e2e/
 # Python is formatted by ruff, TOML and SQL aren't Prettier's.
 pnpm-lock.yaml
 # Rewritten by `next dev`; formatting it would churn.

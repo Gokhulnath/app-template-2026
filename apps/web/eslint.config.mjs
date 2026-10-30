@@ -13,6 +13,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // packages/e2e's own static export (docs/testing.md), left on disk by `pnpm e2e`.
+    "dist-e2e/**",
   ]),
   // Last, so Prettier owns formatting and ESLint only reports code problems.
   prettier,

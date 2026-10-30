@@ -1,0 +1,21 @@
+{
+  "name": "e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Playwright end-to-end suite that drives the real web app in a real browser against this harness's own API -- never the owner's own running dev stack (docs/testing.md).",
+  "type": "module",
+  "scripts": {
+    "pw": "playwright test",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@playwright/test": "1.64.0",
+    "@types/node": "24.19.2",
+    "eslint": "9.39.5",
+    "eslint-config-prettier": "10.1.8",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.0"
+  }
+}

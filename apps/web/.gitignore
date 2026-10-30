@@ -17,6 +17,10 @@
 /.next/
 /out/
 
+# packages/e2e's own static export (MYAPP_WEB_DIST_DIR, docs/testing.md) -- never
+# apps/web/out, which `pnpm build` and any static host deploy from.
+/dist-e2e/
+
 # production
 /build
 

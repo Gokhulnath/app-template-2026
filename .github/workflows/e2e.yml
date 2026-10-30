@@ -1,0 +1,59 @@
+name: E2E
+
+# Never on pull_request/push (docs/testing.md "Isolation rules"): a cold `next build`
+# of apps/web plus `fastapi dev`'s own startup is heavier and slower than the PR gate
+# should pay for on every push. Run it by hand, or let the nightly schedule catch a
+# regression between manual runs.
+on:
+  workflow_dispatch:
+  schedule:
+    # 03:23 UTC daily -- an off-the-hour time, so it doesn't pile up with every other
+    # project's own midnight/top-of-hour cron on GitHub's shared runners.
+    - cron: "23 3 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: packages/e2e against this harness's own API and web app
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0; pnpm version from "packageManager"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          cache: pnpm
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          enable-cache: true
+
+      # .python-version says 3.14+gil, which uv only matches against installed
+      # interpreters, never downloads, so install the standard (GIL) 3.14 build first --
+      # same as ci.yml.
+      - name: Install Python 3.14
+        run: uv python install 3.14
+      - name: Install (pnpm, plus uv sync for the Python apps)
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium for Playwright
+        run: pnpm --filter e2e exec playwright install --with-deps chromium
+
+      # No Doppler here (CLAUDE.md "Secrets": never in CI) -- `scripts/with-doppler.sh`
+      # already falls back to plain env/.env defaults when Doppler isn't configured, so
+      # this job needs no secrets at all: the template has no auth or database
+      # requirement yet (docs/testing.md), so the smoke spec only needs the API and web
+      # app themselves to come up.
+      - name: Run the e2e suite
+        run: pnpm e2e
+
+      - name: Upload the Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: |
+            packages/e2e/playwright-report/
+            packages/e2e/test-results/
+          retention-days: 7

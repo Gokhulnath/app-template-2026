@@ -20,6 +20,7 @@
     "format": "prettier --write . && pnpm --recursive --if-present format",
     "typecheck": "pnpm --recursive --if-present typecheck",
     "test": "pnpm --recursive --if-present test",
+    "e2e": "pnpm --filter e2e pw",
     "verify": "scripts/verify.sh",
     "db:start": "supabase start",
     "db:stop": "supabase stop",

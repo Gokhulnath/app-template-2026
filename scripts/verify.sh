@@ -7,15 +7,18 @@
 #
 #   pnpm verify               # everything
 #   pnpm verify --no-desktop  # skip the desktop builds, for a change that can't affect them
+#   pnpm verify --e2e         # also run packages/e2e (off by default -- see docs/testing.md)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 desktop=yes
+e2e=no
 for arg in "$@"; do
   case $arg in
     --no-desktop) desktop=no ;;
+    --e2e) e2e=yes ;;
     *)
-      echo "usage: pnpm verify [--no-desktop]" >&2
+      echo "usage: pnpm verify [--no-desktop] [--e2e]" >&2
       exit 2
       ;;
   esac
@@ -50,6 +53,14 @@ fi
 step "test" env MYAPP_REQUIRE_DB=1 pnpm test
 step "build" pnpm build
 step "release packages" scripts/build-packages.sh
+
+if [[ $e2e == yes ]]; then
+  # packages/e2e starts its own API and web app on 8580/3580 -- never the dev servers
+  # `pnpm dev` starts (see docs/testing.md).
+  step "e2e" pnpm e2e
+else
+  results+=("skip  e2e (pass --e2e to run it; see docs/testing.md)")
+fi
 
 if [[ $desktop == yes ]]; then
   case "$(uname -s)" in

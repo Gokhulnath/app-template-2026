@@ -2314,3 +2314,27 @@ session.
 ```bash
 git worktree remove .claude/worktrees/<slug>
 ```
+
+## Require an AI review of migration changes
+
+**Why.** A migration that has run on real data can't be undone by a revert. The tests
+prove behavior against the local database, but not that a migration is safe on existing
+rows (data loss, long locks) or that a grant is no wider than it needs to be. With agents
+writing most commits, a pull request that touches `supabase/migrations/` now gets a
+required review.
+
+**What changed.**
+
+- `scripts/affected.mjs` gains `REVIEW_PATHS` (`supabase/migrations/`; add the API's auth
+  modules when auth lands) and two outputs, `review` and `review_files`. They're set only
+  on a pull request.
+- `.github/workflows/ci.yml` gains a `review` job. It runs `anthropics/claude-code-action`
+  v1.0.254, pinned by SHA (about two weeks old, deliberately not the newest), with model
+  `claude-opus-5-5` and read-only tools. It returns a `--json-schema` verdict, writes the
+  findings to the job summary, and fails on `block`. The required check also needs
+  `review`, so the ruleset is unchanged.
+- **It fails closed** without the `ANTHROPIC_API_KEY` secret or without a verdict. The key
+  is a GitHub secret of its own, so the job never holds a production Doppler token.
+
+**Owner step.** Add the `ANTHROPIC_API_KEY` repository secret (Settings > Secrets and
+variables > Actions). Until then, only a pull request that touches migrations is blocked.

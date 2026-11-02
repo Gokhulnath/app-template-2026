@@ -6,6 +6,9 @@ API may touch (`docs/architecture.md`, "Data (Supabase)").
 
 **Hard boundaries**
 
+- A PR touching `supabase/migrations/` gets a required AI review in CI (`review` in
+  `.github/workflows/ci.yml`). It blocks data loss, long locks, edits to an existing
+  migration, and access widened beyond the change's need.
 - `supabase/migrations/*.sql` is the only migration mechanism — no Alembic.
 - `app` is never in `[api] schemas` (`config.toml`) and never reachable through the
   disabled Data API (`[api] enabled = false`). Don't re-enable it or add `app` to

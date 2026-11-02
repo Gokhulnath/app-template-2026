@@ -20,6 +20,9 @@
 // invisible here, so declare it: apps/docs devDepends on api and cli (its generators read
 // them), apps/desktop on web (it wraps web's export) and packages/e2e on api and web (it
 // starts them) for exactly this reason.
+//
+// Separately, a pull request that touches REVIEW_PATHS sets `review`, which runs the
+// required AI review of migrations (the `review` job in ci.yml).
 import { execFileSync } from "node:child_process";
 import { appendFileSync, existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
@@ -41,6 +44,11 @@ const PATH_RULES = [
   // The Agent Skill drives the CLI and ships in the CLI's release packages.
   { pattern: /^skills\//, packages: ["cli"] },
 ];
+
+// Changes the `review` job in ci.yml reads before a pull request can merge: a migration
+// can't be undone by reverting it once it has run on real data. Add the API's auth
+// modules here when auth lands.
+const REVIEW_PATHS = [/^supabase\/migrations\//];
 
 // Files that can't change what any package builds or tests.
 const LINT_ONLY = [
@@ -257,6 +265,8 @@ const everything = (reason) => ({
   packages: workspace.packages.map((pkg) => pkg.name).sort(),
 });
 let selection;
+// Only a pull request is reviewed: a push to main already passed review as its PR.
+let reviewFiles = [];
 if (args.all) {
   selection = everything("--all");
 } else {
@@ -264,8 +274,11 @@ if (args.all) {
   selection = changed.error
     ? everything(changed.error)
     : select(changed.files, workspace);
+  reviewFiles = changed.error
+    ? ["(the changed files couldn't be listed)"]
+    : changed.files.filter((file) => REVIEW_PATHS.some((re) => re.test(file)));
 }
-const result = plan(selection, workspace);
+const result = { ...plan(selection, workspace), review_files: reviewFiles };
 
 const why = result.all
   ? `all ${result.workspace_size} packages (${result.reasons.slice(0, 5).join(", ")}${result.reasons.length > 5 ? ", ..." : ""})`
@@ -287,6 +300,8 @@ if (args.format === "github") {
     test_filter: result.test_filter,
     db_matrix: JSON.stringify(result.db_matrix),
     chromium: result.chromium,
+    review: result.review_files.length > 0,
+    review_files: result.review_files.join(" "),
   };
   appendFileSync(
     out,

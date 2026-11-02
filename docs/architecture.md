@@ -145,6 +145,9 @@ use it, since proxying is an MCP-to-MCP concern, not an HTTP-to-API one.
   current login is this project's own workplace, `scripts/with-doppler.sh` prints one
   line naming the folder and the fix, once, instead of staying silent.
 - Nothing secret is ever committed, put in a `NEXT_PUBLIC_*` variable or pasted in chat.
+- CI's migration review reads `ANTHROPIC_API_KEY` from a GitHub Actions secret of its own,
+  not Doppler, so a pull request job that runs a model on the PR's content never holds a
+  production Doppler token.
 
 | Key                          | `dev`                      | `prd`                                                                           |
 | ---------------------------- | -------------------------- | ------------------------------------------------------------------------------- |

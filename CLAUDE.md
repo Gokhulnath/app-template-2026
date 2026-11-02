@@ -134,6 +134,9 @@ private (secrets, cloud identifiers, local paths). Product features stay here.
   Leave a worktree in place and ask if it has uncommitted or unmerged work, a local env
   file (git ignores those, so removing the worktree deletes them silently), or belongs to
   another session.
+- A PR that changes `supabase/migrations/` also gets an AI review in CI, inside the
+  required check: a "block" verdict fails it. Fix what it blocks on; don't route around
+  it. It reads the `ANTHROPIC_API_KEY` GitHub secret, which the owner sets.
 
 ## Releases
 

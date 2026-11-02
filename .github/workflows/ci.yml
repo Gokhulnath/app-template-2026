@@ -19,7 +19,8 @@ concurrency:
 # the rest. The ruleset requires one check, "Lint, type-check, build and test":
 # the last job below, which passes only when every job before it passed or was skipped.
 # Selection runs inside these jobs, never as `paths:` filters on the trigger, so a required
-# check is never left waiting on a workflow that didn't start.
+# check is never left waiting on a workflow that didn't start. A pull request that touches
+# migrations also gets an AI review (`review`), which the same check requires.
 #
 # Actions are pinned to commit SHAs (tags can be moved); Renovate updates the SHA and the
 # version comment together.
@@ -34,6 +35,8 @@ jobs:
       test_filter: ${{ steps.select.outputs.test_filter }}
       db_matrix: ${{ steps.select.outputs.db_matrix }}
       chromium: ${{ steps.select.outputs.chromium }}
+      review: ${{ steps.select.outputs.review }}
+      review_files: ${{ steps.select.outputs.review_files }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -150,10 +153,71 @@ jobs:
         if: matrix.suite.schema_lint
         run: pnpm exec supabase db lint --local --fail-on warning
 
+  # A required AI review of migrations (scripts/affected.mjs's REVIEW_PATHS): a migration
+  # can't be undone by a revert once it has run on real data, and tests prove behavior,
+  # not that a migration is safe on existing rows. Claude reads the diff with read-only
+  # tools and returns a verdict; "block" fails this job, and so the required check. It
+  # fails closed: with no ANTHROPIC_API_KEY secret, or no verdict, it fails. The key is a
+  # GitHub secret of its own, so this job never holds a production Doppler token.
+  review:
+    name: Review migration changes
+    needs: affected
+    if: needs.affected.outputs.review == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Require the review's API key
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        run: |
+          if [ "$HAS_KEY" != true ]; then
+            echo "::error::This pull request changes migrations, which need an AI review before merge. Add the ANTHROPIC_API_KEY repository secret (Settings > Secrets and variables > Actions), then re-run this job."
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The review diffs against the base branch.
+          fetch-depth: 0
+      - id: review
+        uses: anthropics/claude-code-action@db77d4d3c98f3f6380e7cd45ffba2342a3dbde3c # v1.0.254
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            You are the required pre-merge review of a pull request to ${{ github.repository }} that changes database migrations. You can read the repository and run git; you can't change anything.
+
+            Files that triggered this review: ${{ needs.affected.outputs.review_files }}
+            Read the whole change with `git diff origin/${{ github.base_ref }}...HEAD`, and the rules this schema must keep in docs/architecture.md ("Data (Supabase)") and supabase/AGENTS.md.
+
+            Verdict "block" only for a problem that is unsafe or expensive once merged:
+            - a migration that loses or corrupts existing data (dropping or retyping a column or table that holds data without a backfill or a safe multi-step plan), or that takes a long lock on a table that may be large;
+            - an edit to a migration that already exists on the base branch, instead of a new migration;
+            - a grant, role change or SECURITY DEFINER function that widens access beyond what the change needs, including exposing the `app` schema to `anon` or `authenticated` (a SECURITY DEFINER function without a fixed search_path counts).
+            Anything else (naming, style, tests, a better approach) is advisory and never blocks.
+
+            Give every finding a file, a line where one applies, the problem and the fix. Verdict "pass" when nothing blocks.
+          claude_args: |
+            --model claude-opus-5-5
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(git show:*)"
+            --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["pass","block"]},"summary":{"type":"string"},"findings":{"type":"array","items":{"type":"object","properties":{"severity":{"type":"string","enum":["blocking","advisory"]},"file":{"type":"string"},"line":{"type":"integer"},"issue":{"type":"string"},"fix":{"type":"string"}},"required":["severity","file","issue","fix"]}}},"required":["verdict","summary","findings"]}'
+      - name: Report the findings and enforce the verdict
+        env:
+          OUTPUT: ${{ steps.review.outputs.structured_output }}
+        run: |
+          if ! verdict=$(jq -er '.verdict' <<<"$OUTPUT"); then
+            echo "::error::The review returned no verdict."
+            exit 1
+          fi
+          jq -r '"## Migration review: \(.verdict)\n\n\(.summary)\n",
+            (.findings[] | "- **\(.severity)** `\(.file)\(if .line then ":\(.line)" else "" end)`: \(.issue) _Fix:_ \(.fix)")' \
+            <<<"$OUTPUT" | tee -a "$GITHUB_STEP_SUMMARY"
+          [ "$verdict" = pass ]
+
   # The one check the main ruleset requires (.github/rulesets/main.json). Keep its name.
   result:
     name: Lint, type-check, build and test
-    needs: [affected, checks, db-tests]
+    needs: [affected, checks, db-tests, review]
     # always(), not !cancelled(): GitHub counts a skipped required check as passing, so a
     # cancelled run must still reach this job and fail here, not skip it.
     if: always()
@@ -164,7 +228,7 @@ jobs:
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          echo "affected, checks, db-tests: $RESULTS"
+          echo "affected, checks, db-tests, review: $RESULTS"
           for result in $RESULTS; do
             case $result in
               success | skipped) ;;

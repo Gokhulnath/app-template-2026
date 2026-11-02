@@ -2299,3 +2299,18 @@ would justify it rather than adopting it now:
 
 Turborepo's trigger now follows affected-only CI, with the caveat that its cross-worktree
 local cache needs care for outputs that embed absolute paths (vercel/turborepo#13651).
+
+## Remove a task's worktree once its PR merges
+
+Agent sessions each create a worktree under `.claude/worktrees/`, each with its own
+`node_modules` and `.venv`, and nothing removed them. In the project this template came
+from, 78 had piled up (221 GB), every one clean and merged. Root `CLAUDE.md`, "Branches
+and PRs", now says: once a task's PR is merged (or the task is dropped), the session
+removes its worktree and keeps the branch. It never uses `--force`, and it leaves a
+worktree in place and asks when the worktree has uncommitted or unmerged work, a local
+env file (git ignores those, so removal deletes them silently), or belongs to another
+session.
+
+```bash
+git worktree remove .claude/worktrees/<slug>
+```

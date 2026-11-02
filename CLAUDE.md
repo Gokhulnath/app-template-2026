@@ -127,6 +127,13 @@ private (secrets, cloud identifiers, local paths). Product features stay here.
 - Open the PR with `gh pr create` using `.github/pull_request_template.md` (What, Why,
   Verified, Setup log). Wait for CI, then `gh pr merge <n> --rebase`. Rebase is the only
   merge method enabled. **Keep the branch:** no `--delete-branch`.
+- **Remove the worktree when the task is done.** Once a task's PR is merged, or the task is
+  dropped, remove its worktree in the same session, keeping the branch:
+  `git worktree remove .claude/worktrees/<slug>`. Worktrees pile up fast (each holds its
+  own `node_modules` and `.venv`) and nothing else cleans them up. Never use `--force`.
+  Leave a worktree in place and ask if it has uncommitted or unmerged work, a local env
+  file (git ignores those, so removing the worktree deletes them silently), or belongs to
+  another session.
 
 ## Releases
 

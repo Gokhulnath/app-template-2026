@@ -15,7 +15,8 @@
       "Read(**/.env.production)",
       "Read(**/.env.keys)",
       "Read(**/.env.vault)",
-      "Read(**/.envrc)"
+      "Read(**/.envrc)",
+      "Read(packages/api-types/src/schema.d.ts)"
     ]
   },
   "hooks": {

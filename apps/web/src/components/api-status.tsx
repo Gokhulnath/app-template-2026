@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 
 import { Button, Stack } from "@myapp/ui";
+import type { Schema } from "@myapp/api-types";
 
 import { apiFetch } from "@/lib/api";
 
-type Health = { status: "ok" | "degraded"; db: "ok" | "unavailable" };
+type Health = Schema<"Health">;
 
 async function fetchStatus(): Promise<string> {
   try {

@@ -29,3 +29,11 @@ apps/docs/.generated/
 apps/docs/content/docs/reference/api/
 apps/docs/content/docs/reference/cli.mdx
 apps/docs/content/docs/reference/mcp-tools.mdx
+# The committed OpenAPI contract and its generated TS types (docs/architecture.md,
+# `pnpm contract:generate`/`contract:check`): apps/api/scripts/export_openapi.py and
+# openapi-typescript each own their own deterministic formatting (2-space-indent JSON
+# with one array element per line, and openapi-typescript's own 4-space TS style) --
+# reformatting either to Prettier's own style would just be undone by the next
+# `pnpm contract:generate`, and `contract:check` compares against that exact output.
+apps/api/openapi.json
+packages/api-types/src/schema.d.ts

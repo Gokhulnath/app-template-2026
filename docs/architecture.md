@@ -25,9 +25,17 @@ description: One backend, many thin clients -- the pieces, the conventions, and 
   matching REST route. `myapp mcp` (the CLI, and the `.mcpb` bundle) is a stdio proxy to
   `/mcp` with no tool definitions of its own, for setups that can't reach the API's HTTP
   port directly.
-- **The OpenAPI schema (`/openapi.json`) is the contract.** Every client is written against
-  it. Generated clients (TypeScript for web and desktop, Python for the CLI and MCP, Swift
-  and Kotlin for mobile) come from it once there are a few real endpoints.
+- **The committed OpenAPI schema is the contract.** `apps/api/openapi.json` is exported
+  from the live FastAPI app (`apps/api/scripts/export_openapi.py`) and committed, so a
+  contract change shows up in the PR diff that caused it. `pnpm contract:generate`
+  regenerates it and `@myapp/api-types` (TypeScript types generated from it by
+  openapi-typescript); `pnpm contract:check` fails when either has drifted, run by
+  `pnpm lint` and by a lefthook pre-commit job on `apps/api/src/**/*.py`. Today only
+  `apps/web` imports `@myapp/api-types` (a `Schema<Name>` alias in place of a
+  hand-written type) — `apps/desktop` has no client code of its own, it ships
+  `apps/web`'s export, so it's covered only indirectly; `apps/cli` talks to the API in
+  Python, so this generator doesn't reach it; mobile clients come later, once they
+  exist.
 
 ## Product surfaces
 

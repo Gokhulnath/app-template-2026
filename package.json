@@ -16,7 +16,7 @@
     "build:packages": "scripts/build-packages.sh",
     "build:storybook": "pnpm --filter @myapp/ui build-storybook",
     "tokens:build": "pnpm --filter @myapp/tokens build",
-    "lint": "prettier --check . && pnpm --recursive --if-present lint",
+    "lint": "prettier --check . && scripts/check-agent-docs.sh && pnpm --recursive --if-present lint",
     "format": "prettier --write . && pnpm --recursive --if-present format",
     "typecheck": "pnpm --recursive --if-present typecheck",
     "test": "pnpm --recursive --if-present test",

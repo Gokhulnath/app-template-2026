@@ -2117,3 +2117,60 @@ green, on ports `8510`/`3510` (`E2E_API_URL`/`E2E_WEB_URL` overrides, to stay of
 machine's own reserved port blocks for an unrelated concurrent project) with no local
 database running at all. `pnpm build` unaffected: still writes `apps/web/out`, never
 `apps/web/dist-e2e`.
+
+## Check only the affected packages on a pull request
+
+CI used to lint, type-check, build and test every package on every change, and its required
+check gates every merge, so CI time is merge time. A pull request now type-checks, builds and
+tests only the packages its changes can affect; a push to `main` still runs everything, and
+lint always runs in full. Tests that need Postgres run in their own parallel jobs (one group,
+`api`, here), so a slow database suite doesn't hold up the rest.
+
+1. Declare the workspace edges the graph was missing. `apps/docs`' generators read
+   `apps/api` and `apps/cli`, `apps/desktop` wraps `apps/web`'s export, and `packages/e2e`
+   starts `api` and `web`:
+
+   ```bash
+   pnpm --filter docs add -D 'api@workspace:*' 'cli@workspace:*'
+   pnpm --filter desktop add -D 'web@workspace:*'
+   pnpm --filter e2e add -D 'api@workspace:*' 'web@workspace:*'
+   ```
+
+2. `scripts/affected.mjs` maps the branch's changed files (against the merge base with the
+   PR's base branch) to workspace packages, then adds every package that depends on one of
+   them. Files outside `apps/*` and `packages/*` map through a short table (`docs/` →
+   `docs`, `supabase/` → the database suites, `skills/` → `cli`); root Markdown, `.claude/`
+   and other lint-only files select nothing; anything else (root `package.json`, the
+   lockfile, workflows, `scripts/`, a package added or removed, an unknown base ref) selects
+   everything. Unknown always means "run everything".
+3. `.github/workflows/ci.yml` becomes four jobs: `affected` (runs the script, full-history
+   checkout), `checks` (lint in full, then type-check, build and the database-free tests of
+   the selected packages, `--no-sort`), `db-tests` (a matrix over the selected database
+   groups, each with its own `supabase db start` and, for `api`, `supabase db lint`), and
+   `result`, which carries the required check's name ("Lint, type-check, build and test")
+   and passes only when every job before it passed or was skipped, so the ruleset doesn't
+   change. Its condition is `always()`, not `!cancelled()`: GitHub counts a skipped required
+   check as passing, so a cancelled run must reach it and fail. Selection happens inside the
+   jobs, never as `paths:` on the trigger, so a required check is never left pending.
+4. Each database job first runs `sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329`.
+   Supabase's local ports sit inside Linux's ephemeral range, and a connection Docker still
+   holds from pulling the images can own one just as Supabase binds it ("failed to bind host
+   port 0.0.0.0:54322 ... address already in use", seen on a fresh runner).
+5. `pnpm verify --affected` runs the same selection locally against `origin/main`, including
+   uncommitted and untracked files. Plain `pnpm verify` still checks everything.
+
+A new app whose tests need the database joins a group in `DB_GROUPS` (or gets its own, for
+its own parallel job). A package that reads another package's files declares it as a
+`workspace:*` dependency, even without an import, or a change to the one it reads won't
+select it.
+
+Not done, deliberately: Turborepo (task caching). Adopt it if CI is still slow with
+affected-only selection, or if local `pnpm verify` across many worktrees becomes the
+bottleneck.
+
+Verify: with the script committed, `node scripts/affected.mjs --base HEAD --local` against
+probe files selected `api, docs, e2e` for `apps/api`; `desktop, e2e, web` for `apps/web`;
+`@myapp/tokens`, `@myapp/ui`, `desktop`, `docs`, `e2e`, `web` for `packages/tokens`;
+`api, docs, e2e` for `supabase/`; `cli, docs` for `skills/`; `docs` for `docs/`; nothing
+for the root README; everything for a new `apps/` directory. `actionlint` is clean on
+`ci.yml`.

@@ -53,6 +53,7 @@ API.
 | `pnpm format`                                          | Prettier, plus ruff fix and format                                                                             |
 | `pnpm test`                                            | pytest with coverage and its floor (api, cli), every Storybook story (ui)                                      |
 | `pnpm verify` (`--no-desktop`, `--e2e`)                | the pre-merge check: lint, types, tests, builds, desktop builds; `--e2e` also runs `pnpm e2e` (off by default) |
+| `pnpm verify --affected`                               | the same, for only the packages your branch can affect (what CI checks on a PR)                                |
 | `pnpm e2e`                                             | Playwright smoke test against the harness's own API and web app (`docs/testing.md`)                            |
 | `pnpm myapp …`                                         | the `myapp` CLI, e.g. `pnpm myapp status`                                                                      |
 | `pnpm db:start` / `db:stop` / `db:reset` / `db:status` | local Supabase stack                                                                                           |

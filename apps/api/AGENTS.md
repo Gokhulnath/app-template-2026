@@ -35,10 +35,10 @@ straight into the FastAPI app, so a tool call runs the exact same code as `/heal
 
 This directory owns the API contract (root `CLAUDE.md`, "Tests") and proves it against
 the real database where it matters (`test_health.py`'s `test_health_with_database`,
-`test_mcp.py`'s `mcp_server` fixture) — everything else (`test_cors.py`, `test_problems.py`,
-`test_db_pool.py`, `test_request_id.py`) runs against `tests/support.py`'s
-`IsolatedSettings`, which only ever reads the arguments it's given, never the developer's
-own environment or `.env`. `fail_under = 99` in `pyproject.toml`.
+`test_mcp.py`'s `mcp_server` fixture, `test_db_pool.py`'s pool-exhaustion test) —
+everything else (`test_cors.py`, `test_problems.py`, `test_request_id.py`) runs against
+`tests/support.py`'s `IsolatedSettings` with no database involved at all. `fail_under = 99`
+in `pyproject.toml`.
 
 ## Gotchas proven by the code and docs
 

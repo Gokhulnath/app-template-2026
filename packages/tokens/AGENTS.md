@@ -38,10 +38,10 @@ breaks more than one of these.
 
 ## Gotchas proven by the code
 
-- `textual()` in `build.mjs` reads nine Textual theme fields from eight semantic colors
-  by exact name (`accent`, `text-muted`, `text`, `bg`, `surface`, `surface-muted`,
-  `success`, `warning`, `danger`) with no fallback — drop or rename one in
-  `color.*.json` without updating `textual()` and the build throws.
+- `textual()` in `build.mjs` reads ten Textual theme fields (plus a literal `dark` flag)
+  from nine semantic colors by exact name (`accent`, `text-muted`, `text`, `bg`, `surface`,
+  `surface-muted`, `success`, `warning`, `danger`) with no fallback — drop or rename one
+  in `color.*.json` without updating `textual()` and the build throws.
 - Style Dictionary 5.6 doesn't format the DTCG `duration` type for CSS, so `build.mjs`
   registers its own `duration/css` transform. Keep it when touching `shape.json`'s motion.
 - A new token category that should become a Tailwind utility also needs an entry in

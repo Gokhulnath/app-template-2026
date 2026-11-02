@@ -12,15 +12,54 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# A pull request type-checks, builds and tests only the packages its changes can affect
+# (scripts/affected.mjs decides; anything it can't map selects everything), and a push to
+# main runs everything, so main stays fully checked. Lint always runs in full. Tests that
+# need Postgres run in their own parallel jobs, so a slow database suite doesn't hold up
+# the rest. The ruleset requires one check, "Lint, type-check, build and test":
+# the last job below, which passes only when every job before it passed or was skipped.
+# Selection runs inside these jobs, never as `paths:` filters on the trigger, so a required
+# check is never left waiting on a workflow that didn't start.
+#
 # Actions are pinned to commit SHAs (tags can be moved); Renovate updates the SHA and the
 # version comment together.
 jobs:
-  check:
-    name: Lint, type-check, build and test
+  affected:
+    name: Select the affected packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      packages: ${{ steps.select.outputs.packages }}
+      filter: ${{ steps.select.outputs.filter }}
+      test_filter: ${{ steps.select.outputs.test_filter }}
+      db_matrix: ${{ steps.select.outputs.db_matrix }}
+      chromium: ${{ steps.select.outputs.chromium }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The merge base with the PR's base branch has to be in the clone.
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+      - id: select
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            node scripts/affected.mjs --base "origin/$BASE_REF" --github-output
+          else
+            node scripts/affected.mjs --all --github-output
+          fi
+
+  checks:
+    name: Lint, type-check, build and unit tests
+    needs: affected
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      # Database tests fail instead of skipping when Postgres isn't reachable.
+      # No suite here should need Postgres; if one ever does, it fails instead of skipping.
       MYAPP_REQUIRE_DB: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -43,15 +82,92 @@ jobs:
           uv lock --check --project apps/cli
       - name: Install (pnpm, plus uv sync for the Python apps)
         run: pnpm install --frozen-lockfile
-      - name: Start the local database (migrations and seed applied)
-        run: pnpm exec supabase db start
       # The design system's tests render every Storybook story in a headless Chromium.
       - name: Install Chromium for the Storybook tests
+        if: needs.affected.outputs.chromium == 'true'
         run: pnpm --filter @myapp/ui exec playwright install --with-deps chromium
 
       - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm build
-      - run: pnpm test
+      - name: Type-check the affected packages
+        if: needs.affected.outputs.filter != ''
+        env:
+          FILTER: ${{ needs.affected.outputs.filter }}
+        run: pnpm $FILTER --if-present typecheck
+      - name: Build the affected packages
+        if: needs.affected.outputs.filter != ''
+        env:
+          FILTER: ${{ needs.affected.outputs.filter }}
+        run: pnpm $FILTER --if-present build
+      # --no-sort: test suites don't wait on each other, so don't hold one back until its
+      # workspace dependencies' tests finish.
+      - name: Test the affected packages that don't need Postgres
+        if: needs.affected.outputs.test_filter != ''
+        env:
+          FILTER: ${{ needs.affected.outputs.test_filter }}
+        run: pnpm $FILTER --no-sort --if-present test
+
+  db-tests:
+    name: Test ${{ matrix.suite.name }} against Postgres
+    needs: affected
+    if: needs.affected.outputs.db_matrix != '[]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: ${{ fromJSON(needs.affected.outputs.db_matrix) }}
+    env:
+      # Database tests fail instead of skipping when Postgres isn't reachable.
+      MYAPP_REQUIRE_DB: "1"
+    steps:
+      # Supabase's local ports (54320-54329, supabase/config.toml) sit inside Linux's
+      # ephemeral range, so a connection Docker still holds open from pulling the images
+      # can own one just as Supabase binds it ("failed to bind host port ... address
+      # already in use", seen once in CI). Reserved ports are never handed out as source
+      # ports.
+      - name: Keep outgoing connections off Supabase's ports
+        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0; pnpm version from "packageManager"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          cache: pnpm
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          enable-cache: true
+      - name: Install Python 3.14
+        run: uv python install 3.14
+      - name: Install (pnpm, plus uv sync for the Python apps)
+        run: pnpm install --frozen-lockfile
+      - name: Start the local database (migrations and seed applied)
+        run: pnpm exec supabase db start
+      - name: Test ${{ matrix.suite.name }}
+        env:
+          FILTER: ${{ matrix.suite.filter }}
+        run: pnpm $FILTER --no-sort --if-present test
       - name: Lint the database schema
+        if: matrix.suite.schema_lint
         run: pnpm exec supabase db lint --local --fail-on warning
+
+  # The one check the main ruleset requires (.github/rulesets/main.json). Keep its name.
+  result:
+    name: Lint, type-check, build and test
+    needs: [affected, checks, db-tests]
+    # always(), not !cancelled(): GitHub counts a skipped required check as passing, so a
+    # cancelled run must still reach this job and fail here, not skip it.
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require every job to have passed or been skipped
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "affected, checks, db-tests: $RESULTS"
+          for result in $RESULTS; do
+            case $result in
+              success | skipped) ;;
+              *) exit 1 ;;
+            esac
+          done

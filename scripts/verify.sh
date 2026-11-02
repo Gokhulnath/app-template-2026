@@ -6,23 +6,41 @@
 # the release workflow builds it.
 #
 #   pnpm verify               # everything
+#   pnpm verify --affected    # only the packages this branch's changes can affect (vs
+#                             # origin/main, uncommitted and untracked files included):
+#                             # what CI checks on a pull request
 #   pnpm verify --no-desktop  # skip the desktop builds, for a change that can't affect them
 #   pnpm verify --e2e         # also run packages/e2e (off by default -- see docs/testing.md)
+#
+# Lint always runs in full. scripts/affected.mjs decides what "affected" means.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 desktop=yes
 e2e=no
+affected=no
 for arg in "$@"; do
   case $arg in
+    --affected) affected=yes ;;
     --no-desktop) desktop=no ;;
     --e2e) e2e=yes ;;
     *)
-      echo "usage: pnpm verify [--no-desktop] [--e2e]" >&2
+      echo "usage: pnpm verify [--affected] [--no-desktop] [--e2e]" >&2
       exit 2
       ;;
   esac
 done
+
+if [[ $affected == yes ]]; then
+  # Sets AFFECTED_FILTER (pnpm --filter flags, empty when nothing is affected),
+  # AFFECTED_DB_FILTER, AFFECTED_DESKTOP and AFFECTED_RELEASE_PACKAGES.
+  eval "$(node scripts/affected.mjs --base origin/main --local --shell)"
+else
+  AFFECTED_FILTER=--recursive
+  AFFECTED_DB_FILTER=--recursive
+  AFFECTED_DESKTOP=true
+  AFFECTED_RELEASE_PACKAGES=true
+fi
 
 results=()
 summary() {
@@ -45,14 +63,26 @@ step() {
 }
 
 step "lint" pnpm lint
-step "type-check" pnpm typecheck
-if ! pnpm exec supabase status >/dev/null 2>&1; then
-  step "start the local database" pnpm db:start
+if [[ -n $AFFECTED_FILTER ]]; then
+  # Unquoted on purpose: the filter is several flags.
+  # shellcheck disable=SC2086
+  step "type-check" pnpm $AFFECTED_FILTER --if-present typecheck
+  if [[ -n $AFFECTED_DB_FILTER ]] && ! pnpm exec supabase status >/dev/null 2>&1; then
+    step "start the local database" pnpm db:start
+  fi
+  # As in CI: tests that need the database fail instead of skipping when it's down.
+  # shellcheck disable=SC2086
+  step "test" env MYAPP_REQUIRE_DB=1 pnpm $AFFECTED_FILTER --if-present test
+  # shellcheck disable=SC2086
+  step "build" pnpm $AFFECTED_FILTER --if-present build
+else
+  results+=("skip  type-check, test, build (no package affected)")
 fi
-# As in CI: tests that need the database fail instead of skipping when it's down.
-step "test" env MYAPP_REQUIRE_DB=1 pnpm test
-step "build" pnpm build
-step "release packages" scripts/build-packages.sh
+if [[ $AFFECTED_RELEASE_PACKAGES == true ]]; then
+  step "release packages" scripts/build-packages.sh
+else
+  results+=("skip  release packages (the CLI isn't affected)")
+fi
 
 if [[ $e2e == yes ]]; then
   # packages/e2e starts its own API and web app on 8580/3580 -- never the dev servers
@@ -62,7 +92,11 @@ else
   results+=("skip  e2e (pass --e2e to run it; see docs/testing.md)")
 fi
 
-if [[ $desktop == yes ]]; then
+if [[ $desktop == no ]]; then
+  results+=("skip  desktop builds (--no-desktop)")
+elif [[ $AFFECTED_DESKTOP != true ]]; then
+  results+=("skip  desktop builds (the desktop app isn't affected)")
+else
   case "$(uname -s)" in
     Darwin)
       step "desktop: macOS app" pnpm build:desktop --bundles app
@@ -71,8 +105,6 @@ if [[ $desktop == yes ]]; then
     Linux) step "desktop: Linux bundles" pnpm build:desktop ;;
   esac
   results+=("skip  desktop: Windows (the release workflow builds it)")
-else
-  results+=("skip  desktop builds (--no-desktop)")
 fi
 
 summary

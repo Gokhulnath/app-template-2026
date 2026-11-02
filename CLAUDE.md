@@ -20,8 +20,12 @@ as much as what it does.
   `pnpm-lock.yaml`), and never add a `pnpm-workspace.yaml` or lockfile inside an app.
 - Before merging a PR, run `pnpm verify`: lint, type-check, tests against the local
   database (`MYAPP_REQUIRE_DB=1`, as in CI), the builds, and the macOS app and Linux bundles
-  (in Docker). CI runs the same except the desktop builds, which run only for releases.
-  `pnpm verify --no-desktop` skips them for a change that can't affect the desktop app.
+  (in Docker). `pnpm verify --affected` checks only the packages your branch can affect,
+  which is what CI checks on a PR (`scripts/affected.mjs` decides; pushes to `main` run
+  everything). `pnpm verify --no-desktop` skips the desktop builds; CI builds them only for
+  releases.
+- A package that reads another package's files declares it as a `workspace:*` dependency,
+  even with no import (`apps/docs` on `api` and `cli`), so affected selection sees the edge.
 - Python apps (`apps/api`, `apps/cli`): uv only (`uv add`, `uv run`), never `pip`.
   `.python-version` is `3.14+gil` on purpose: plain `3.14` lets uv pick its free-threaded
   build. `+gil` never downloads, so each app's postinstall runs `uv python install 3.14`

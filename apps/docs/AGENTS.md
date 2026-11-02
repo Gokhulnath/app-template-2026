@@ -26,7 +26,9 @@ The myapp docs site: Next.js 16.4 (App Router), static export, built on
   through `useStaticSearch()`, never a live fetch.
 - Never hand-edit `content/docs/reference/**` or `.generated/openapi.json`: both are
   gitignored and rewritten by `pnpm generate` on every `dev`/`build`. Fix the matching
-  `scripts/generate-*.mts` instead.
+  `scripts/generate-*.mts` instead. `.generated/openapi.json` is just a copy of the
+  committed `apps/api/openapi.json` (docs/architecture.md); this app never regenerates
+  the schema itself.
 - `content/docs/build` symlinks to the repo's own `docs/*.md` — editing those files _is_
   editing "Build myapp". `docs/meta.json` titles and orders the section.
 - Depends on `@myapp/tokens` directly, not `@myapp/ui` (Fumadocs' own components replace
@@ -43,8 +45,10 @@ The myapp docs site: Next.js 16.4 (App Router), static export, built on
   `next typegen` first, since `page.tsx`'s generated page props depend on it).
 - `pnpm --filter docs preview` — serves the already-built `out/`.
 
-None need a database: the generators shell into `apps/api`'s and `apps/cli`'s own code
-(`uv run python scripts/export_openapi.py`, `uv run typer myapp.cli utils docs`, `uv run
+None need a database. `generate-openapi.mts` only reads the committed `apps/api/
+openapi.json` (run `pnpm contract:generate` from the repo root first if an API route or
+model just changed); `generate-cli.mts` and `generate-mcp.mts` still shell into
+`apps/cli`'s and `apps/api`'s own code (`uv run typer myapp.cli utils docs`, `uv run
 python scripts/export_mcp_tools.py`) — those apps' `uv` environments must be installed
 (`pnpm install` does this).
 

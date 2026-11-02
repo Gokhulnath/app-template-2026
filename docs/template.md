@@ -162,7 +162,7 @@ Each of these is worth doing once its trigger happens, not before:
 | Item                                                                      | Trigger                                                        |
 | ------------------------------------------------------------------------- | -------------------------------------------------------------- |
 | Auth: Supabase Auth with JWKS checks in FastAPI, API keys for CLI and MCP | the first user-facing feature                                  |
-| Generated API clients (TypeScript, Python)                                | 3–5 real endpoints                                             |
+| Generated API clients (Python, for the CLI)                               | 3–5 real endpoints                                             |
 | Remote MCP (Streamable HTTP at `/mcp`, OAuth)                             | real auth, plus agents that can't run the CLI locally          |
 | Turborepo                                                                 | a shared JS package worth caching, or slow CI                  |
 | CI path filters; a Rust check in CI; cloud migration pushes               | slow CI; Rust code in the shell; Supabase secrets in Doppler   |

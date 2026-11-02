@@ -47,7 +47,11 @@ in `pyproject.toml`.
 - `src/api/db.py`'s `except SQLAlchemyError, OSError, TimeoutError:` is Python 3.14's
   relaxed `except` grammar (parentheses optional around multiple types), not a stray
   Python 2 habit — don't "fix" it by adding parens.
-- `apps/docs`' generators shell into `scripts/export_mcp_tools.py` / `export_openapi.py`
-  to build the generated reference pages — don't hand-edit those docs; regenerate instead.
+- After changing a route or a request/response model, run `pnpm contract:generate` from
+  the repo root and commit `openapi.json` (written by `scripts/export_openapi.py`) with
+  it: `pnpm lint` and the pre-commit hook fail on a stale contract, and
+  `packages/api-types` regenerates from it for TypeScript clients.
+  `scripts/export_mcp_tools.py` and the committed `openapi.json` feed `apps/docs`'
+  generated reference pages; don't hand-edit those pages.
 - Never read `.env` / `.env.local` here. `.env.example` is safe to open and documents,
   per setting, which have no safe default versus a real local default.

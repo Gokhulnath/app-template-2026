@@ -37,6 +37,8 @@ as much as what it does.
   static export, so there are no server components that fetch data, no server actions
   and no route handlers. Data comes from the API through `src/lib/api.ts`.
 - New config values get a commented line in the app's `.env.example`.
+- After changing an API route or model, run `pnpm contract:generate` and commit the
+  result; never hand-edit `apps/api/openapi.json` or `packages/api-types/src/schema.d.ts`.
 
 ## Per-directory instructions
 

@@ -1,0 +1,25 @@
+{
+  "name": "@myapp/api-types",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TypeScript types generated from the API's committed OpenAPI contract (apps/api/openapi.json) by openapi-typescript -- `paths`, `components` and a `Schema<Name>` alias every TS client imports instead of hand-writing its own copy of apps/api's request/response shapes. Regenerate with `pnpm contract:generate` from the repo root; never edit src/schema.d.ts by hand -- the pydantic models in apps/api/src/api are the real source of truth.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "openapi-typescript ../../apps/api/openapi.json -o src/schema.d.ts",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "24.19.2",
+    "api": "workspace:*",
+    "eslint": "9.39.5",
+    "eslint-config-prettier": "10.1.8",
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.0"
+  }
+}

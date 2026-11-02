@@ -27,6 +27,11 @@ pre-commit:
       glob: "*.py"
       run: uv run ruff check --fix {staged_files} && uv run ruff format {staged_files}
       stage_fixed: true
+    # A route or model change can drift apps/api/openapi.json and packages/api-types/
+    # src/schema.d.ts (docs/architecture.md); catch it before it reaches a commit.
+    - name: contract-check
+      glob: "apps/api/src/**/*.py"
+      run: pnpm contract:check
     # No glob: a dropped AGENTS.md/CLAUDE.md, or a new app/package missing either,
     # should fail every commit, not just ones that touch those files directly.
     - name: agent-docs

@@ -2279,3 +2279,23 @@ with a `Health` schema matching `apps/api/src/api/main.py`'s `Health` model;
 one-line edit to `Health` reverted before committing; `pnpm --filter @myapp/api-types
 lint`, `typecheck`; `pnpm --filter web lint`, `typecheck`; `pnpm lint` and
 `scripts/check-agent-docs.sh` clean on the full tree.
+
+## Refresh what the template deliberately leaves out
+
+`docs/template.md`'s "Deliberately left out" table had fallen behind: CI path filters
+shipped (affected-only CI), and generated TypeScript clients shipped (the committed
+OpenAPI contract and `@myapp/api-types`). It is now a list with one trigger per item, plus
+the items a review of how monorepos are run in 2026 turned up, each with the trigger that
+would justify it rather than adopting it now:
+
+- a uv workspace for `apps/api` and `apps/cli` (the first Python package both import);
+- enforced module boundaries inside `apps/api`, for example tach (modules importing each
+  other's internals), as the answer to a growing backend instead of splitting it into
+  services;
+- a template-sync engine such as Copier (several projects made from the template; Copier
+  can't adopt an existing project yet, copier-org/copier#2486);
+- a merge queue (two green PRs breaking `main` together; GitHub offers it only to
+  organization-owned repositories).
+
+Turborepo's trigger now follows affected-only CI, with the caveat that its cross-worktree
+local cache needs care for outputs that embed absolute paths (vercel/turborepo#13651).

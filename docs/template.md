@@ -157,15 +157,43 @@ gh pr merge --rebase                       # once CI passes; keep the branch
 
 ## Deliberately left out
 
-Each of these is worth doing once its trigger happens, not before:
+Each of these is worth doing once its trigger fires, not before.
 
-| Item                                                                      | Trigger                                                        |
-| ------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Auth: Supabase Auth with JWKS checks in FastAPI, API keys for CLI and MCP | the first user-facing feature                                  |
-| Generated API clients (Python, for the CLI)                               | 3–5 real endpoints                                             |
-| Remote MCP (Streamable HTTP at `/mcp`, OAuth)                             | real auth, plus agents that can't run the CLI locally          |
-| Turborepo                                                                 | a shared JS package worth caching, or slow CI                  |
-| CI path filters; a Rust check in CI; cloud migration pushes               | slow CI; Rust code in the shell; Supabase secrets in Doppler   |
-| Pagination, rate limiting                                                 | the first list endpoint; the first external caller             |
-| mise/asdf, devcontainers                                                  | several Node/Python versions per machine; a second contributor |
-| CODEOWNERS                                                                | a second contributor                                           |
+- **Auth**: Supabase Auth with JWKS checks in FastAPI, the local Auth stack, and API keys
+  for the CLI and MCP. _Trigger:_ the first user-facing feature. It touches the API, web
+  app, CLI and CI together, so add it as one feature, not piece by piece.
+- **OAuth for remote MCP** (`/mcp` itself is already here). _Trigger:_ real auth, plus
+  agents that can't run the CLI locally.
+- **Generated Python models for the CLI** (the TypeScript clients already use
+  `@myapp/api-types`, generated from the committed `apps/api/openapi.json`). _Trigger:_
+  the CLI hand-writing copies of more than a few API response shapes.
+- **Pagination, rate limiting**. _Trigger:_ the first list endpoint; the first external
+  caller.
+- **Turborepo** (task caching). _Trigger:_ CI still slow with affected-only selection
+  (`scripts/affected.mjs`), or local `pnpm verify` across many agent worktrees becoming
+  the bottleneck. It caches the existing `package.json` scripts (the `uv run` ones too)
+  and shares its local cache across linked git worktrees; outputs that embed absolute
+  paths (Next.js's `required-server-files.json`) need an explicit `cacheDir` or must stay
+  uncached (vercel/turborepo#13651).
+- **A Rust check in CI**. _Trigger:_ real Rust code in `apps/desktop/src-tauri`.
+- **Cloud migration pushes from CI**. _Trigger:_ Supabase secrets in Doppler and a deployed
+  project to push to.
+- **A uv workspace for `apps/api` and `apps/cli`**. _Trigger:_ the first Python package
+  both import. Today they share no code (the CLI talks to the API over HTTP), and a
+  workspace would force one lockfile and one compatible `requires-python` on both.
+- **Enforced module boundaries inside `apps/api`** (for example
+  [tach](https://github.com/tach-org/tach)). _Trigger:_ the API's modules start importing
+  each other's internals. This, not splitting the API into services, is the answer to a
+  growing backend (`docs/architecture.md`, "One backend, many thin clients").
+- **A template-sync engine** (Copier's `copier update`, or merging the template in as an
+  upstream remote), so projects receive later template changes. _Trigger:_ several
+  projects made from the template. Copier can't adopt an existing project yet
+  (copier-org/copier#2486), so until then changes are ported by hand ("Changing the
+  template" above).
+- **A merge queue**. _Trigger:_ two individually green PRs breaking `main` together.
+  GitHub offers merge queues only to organization-owned repositories (private ones on
+  Enterprise Cloud), so on a personal account the first step is "require branches to be
+  up to date".
+- **mise/asdf, devcontainers**. _Trigger:_ several Node/Python versions per machine; a
+  second contributor.
+- **CODEOWNERS**. _Trigger:_ a second contributor.

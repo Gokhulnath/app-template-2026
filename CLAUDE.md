@@ -32,11 +32,25 @@ as much as what it does.
   first.
 - Formatting is Prettier (JS/TS/JSON/CSS/Markdown) and ruff (Python); types are tsc and
   pyright. Lefthook runs the formatters and a Conventional Commits check on every commit.
-- `apps/web`: Next.js 16.4 differs from older versions. Read `apps/web/AGENTS.md` and the
-  matching guide in `apps/web/node_modules/next/dist/docs/` before writing Next.js code.
-  The app is a static export, so there are no server components that fetch data, no server
-  actions and no route handlers. Data comes from the API through `src/lib/api.ts`.
+- `apps/web`: Next.js 16.4 differs from older versions. Read the matching guide in
+  `apps/web/node_modules/next/dist/docs/` before writing Next.js code. The app is a
+  static export, so there are no server components that fetch data, no server actions
+  and no route handlers. Data comes from the API through `src/lib/api.ts`.
 - New config values get a commented line in the app's `.env.example`.
+
+## Per-directory instructions
+
+Each app and package has its own `AGENTS.md` with the commands and conventions specific
+to it, plus a `CLAUDE.md` that imports it (`@AGENTS.md`), the same way this file is read
+automatically. Read a directory's `AGENTS.md` before working there — this file covers
+only what's shared across all of them. A new app or package gets both files in the same
+PR that creates it; `scripts/check-agent-docs.sh` (wired into `pnpm lint`) fails the
+build when either is missing.
+
+- `supabase/` has both files too, but deliberately isn't enforced by the script above
+  (it only walks `apps/*/` and `packages/*/`): there's exactly one `supabase/`, nothing
+  generates a sibling to drift out of sync, and the tables it defines are already
+  enforced by `apps/api/tests` running against the real database.
 
 ## Design system
 

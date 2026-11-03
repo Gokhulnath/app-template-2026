@@ -35,3 +35,20 @@ test("the web app reaches this harness's own API, not a default or a dev stack",
   await expect(status).not.toContainText("error");
   await expect(status).toHaveText(/^(ok|degraded \(database .+\))$/);
 });
+
+/**
+ * `TitleBar`'s Mac-only drag region (`packages/ui/src/components/title-bar.tsx`) is
+ * gated on `useIsMacDesktopShell()`, which checks `window.__TAURI_INTERNALS__`. This
+ * suite drives the real built web app in a real (non-Tauri) browser -- the one place
+ * that global is genuinely absent the way it is for every actual web visitor -- so
+ * it's the one proof that "web stays unchanged" holds for the shipped app, not just
+ * `title-bar.stories.tsx`'s faked environment. A regression here (for example, a
+ * future refactor that drops the `useIsMacDesktopShell()` gate) would make part of
+ * every real page double-click-to-zoom and swallow clicks on a desktop browser.
+ */
+test("the web app carries no Mac window-drag region outside the desktop shell", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("[data-tauri-drag-region]")).toHaveCount(0);
+});

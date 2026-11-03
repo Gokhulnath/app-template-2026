@@ -22,6 +22,13 @@ tested once, at the strongest boundary, and this suite is that boundary for a
 cross-surface flow (browser → built web app → API); anything one layer can already prove
 on its own stays in that layer's own tests.
 
+The same file's second spec is this suite's negative-case proof for the Mac desktop
+shell's window chrome (`apps/desktop/src-tauri/tauri.macos.conf.json`,
+`packages/ui/src/components/title-bar.tsx`): the real built web app, in this suite's
+real (non-Tauri) browser, never carries the `data-tauri-drag-region` attribute
+`useIsMacDesktopShell()` gates -- the one place "web stays unchanged" is checked against
+the shipped app rather than `title-bar.stories.tsx`'s faked environment.
+
 ## Running it
 
 ```bash

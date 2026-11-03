@@ -14,8 +14,11 @@
         "title": "myapp",
         "width": 900,
         "height": 600,
+        "minWidth": 480,
+        "minHeight": 320,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "visible": false
       }
     ],
     "security": {

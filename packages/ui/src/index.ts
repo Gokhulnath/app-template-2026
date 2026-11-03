@@ -12,4 +12,6 @@ export { Alert, alertVariants, type AlertProps } from "./components/alert";
 export { Stack, type StackProps } from "./components/stack";
 export { Text, textVariants, type TextProps } from "./components/text";
 export { Heading, type HeadingProps } from "./components/heading";
+export { TitleBar, type TitleBarProps } from "./components/title-bar";
 export { cn } from "./lib/cn";
+export { useIsMacDesktopShell } from "./lib/platform";

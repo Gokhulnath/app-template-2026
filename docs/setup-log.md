@@ -2383,3 +2383,67 @@ apps/cli/mcpb/manifest.json` passes after it. `pnpm install --frozen-lockfile`,
 trailing period — the hand-written description had dropped it), `pnpm lint`,
 `pnpm typecheck`, and `pnpm --filter cli test` (14 passed) all pass locally; the
 DB-backed `apps/api` suite runs in CI.
+
+## `feat(desktop)`/`feat(ui)`: clean Mac window with inset traffic lights
+
+**Why.** The Tauri window showed a native title bar with no chrome of its own beneath
+it -- a real product will eventually stack its own top bar there too, doubling up the
+same way donna's own 56px top bar did under a separate native title bar before its
+matching PR. Porting the mechanism now, while this template still has no top bar of its
+own, means a new project starts from a window that already looks native-clean on macOS
+instead of inheriting the double-bar problem.
+
+**What changed.**
+
+- `tauri-plugin-window-state` (new Cargo dependency, `apps/desktop/src-tauri/Cargo.toml`):
+  persists the window's size/position/maximized state across launches
+  (`.window-state.json` in the app's config dir) and shows the window once restored --
+  `tauri.conf.json`'s window now starts `"visible": false` so it never flashes at its
+  configured 900x600 default first.
+- `apps/desktop/src-tauri/tauri.macos.conf.json` (new): a Tauri platform-specific config
+  file, merged automatically on a macOS build/dev run. `titleBarStyle: "Overlay"` +
+  `trafficLightPosition: {x:16, y:16}` insets the native traffic lights, `hiddenTitle:
+true` drops the native title text, `acceptFirstMouse: true` means a click on an
+  unfocused window reaches the page. Windows/Linux keep native decorations (no override
+  file for them) -- a frameless Windows window needs its own custom control buttons
+  this app has no design for.
+  **Gotcha:** Tauri's config merge is RFC 7396 JSON Merge Patch, which replaces arrays
+  wholesale, not element by element -- this file's `app.windows` entry is a full copy of
+  the base window object plus the macOS-only fields, so a future change to the base
+  window must be copied here too.
+- `apps/desktop/src-tauri/tauri.conf.json`: added `minWidth`/`minHeight` (480x320 -- a
+  generic usable floor, since this template has no sidebar or top-bar size token yet to
+  derive them from the way a real product's own `packages/tokens` eventually will).
+- `apps/desktop/src-tauri/src/lib.rs`: on `setup`, paints the window's background from
+  the OS theme (`packages/tokens`' `color.bg`: light `#ffffff`, dark `#09090b`) before
+  the webview has painted anything, so there's no flash of the wrong color while the
+  window is hidden and restoring its geometry.
+- `useIsMacDesktopShell` (new, `packages/ui/src/lib/platform.ts`, exported from
+  `@myapp/ui`): true only inside the Tauri desktop shell on macOS (checks
+  `window.__TAURI_INTERNALS__` and a Mac `navigator.platform`) -- false on web
+  (including Safari/Chrome on a Mac), Windows/Linux and phones, by construction.
+- `TitleBar` (new, `packages/ui/src/components/title-bar.tsx`, with a story): reads
+  that hook, reserves an 80px leading gutter (`w-20`, on the spacing scale, stretched
+  with `self-stretch` rather than `h-full` -- donna's own PR hit the `h-full`-against-an-
+  indefinite-containing-block bug and fixed it the same way in a follow-up, so this port
+  starts from the fixed version) for the traffic lights, and sets
+  `data-tauri-drag-region="deep"` on itself so the whole bar (minus any
+  button/link/input, which Tauri's own `drag.js` checks before it ever looks at this
+  attribute) becomes the window's drag region and double-click-to-zoom target, for
+  free. Renders nothing outside the Mac desktop shell. This template has no top bar of
+  its own yet, so `TitleBar` mounts standalone in `apps/web/src/app/layout.tsx`; a real
+  product should fold the same gutter and attribute into its own top bar instead (see
+  the component's own doc comment).
+
+**Not ported.** donna's matching PR also wired `TopBar`'s existing org switcher/
+breadcrumb/notifications layout around this gutter -- this template has no such
+components, so `TitleBar` is a plain, minimal strip instead (see `docs/design-system.md`'s
+component table). donna's separate Dock-badge PR (its own report item, its own PR) is a
+product feature, not a setup change, and is deliberately not ported here.
+
+**Verify.** `pnpm --filter @myapp/ui lint`/`typecheck`/`test` and `pnpm --filter web
+lint`/`typecheck`/`test` all pass. `cargo check`/`cargo clippy --all-targets` clean in
+`apps/desktop/src-tauri`. `packages/e2e`'s smoke spec gains a second test: the real
+built web app, in a real (non-Tauri) browser, never carries `data-tauri-drag-region` --
+proves "web stays unchanged" against the shipped app, not just the Storybook story's
+faked environment.

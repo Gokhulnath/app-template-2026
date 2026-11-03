@@ -29,8 +29,13 @@ shell (`src-tauri/src/`) that opens the window and loads the export.
 - `README.md` — the CSP's `connect-src` rationale and the dev-vs-packaged origins
   (`http://127.0.0.1:1430` in `tauri dev` vs. `tauri://localhost` / `http://tauri.localhost`
   once packaged).
-- `src-tauri/src/lib.rs` — the only Rust logic: a debug-only log plugin. `main.rs` just
-  calls `run()`.
+- `src-tauri/src/lib.rs` — the Rust shell logic: a debug-only log plugin,
+  `tauri-plugin-window-state` (restores the saved window geometry and shows the window,
+  since `tauri.conf.json`'s window starts `visible: false`), and painting the window's
+  background from the OS theme before first paint. `main.rs` just calls `run()`.
+- `src-tauri/tauri.macos.conf.json` — the macOS-only window chrome (inset traffic
+  lights, no native title text); see `README.md` "Window chrome (macOS)" for the full
+  reasoning, including the RFC 7396 array-merge gotcha.
 - `src-tauri/Cargo.toml` — package `myapp-desktop`, lib `myapp_desktop_lib`, pinned
   `rust-version = "1.90"`.
 
@@ -46,4 +51,8 @@ shell (`src-tauri/src/`) that opens the window and loads the export.
 
 This app owns no behavior worth a test: no business logic, no data access, nothing a
 fake API would exercise. Its real check is that it builds and bundles, which
-`pnpm verify`'s desktop steps already do — don't add a test suite here.
+`pnpm verify`'s desktop steps already do — don't add a test suite here. The Mac-only
+chrome this app's config turns on (the traffic-light drag inset) is tested where its
+visible behavior actually lives: `packages/ui`'s `title-bar.stories.tsx`
+(`useIsMacDesktopShell`, faked) and `packages/e2e`'s smoke spec (the real built web app,
+in a real non-Tauri browser, never carries the Mac-only drag attribute).

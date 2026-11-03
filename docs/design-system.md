@@ -43,17 +43,18 @@ React components on [Base UI](https://base-ui.com), which supplies the behavior 
 accessibility (focus, keyboard, ARIA, disabled states). Styling is Tailwind classes built
 from the token utilities, with variants defined by `cva`.
 
-| Component                           | For                                                                       |
-| ----------------------------------- | ------------------------------------------------------------------------- |
-| `Button`                            | actions: `primary`, `secondary`, `ghost`, `danger`; `sm`, `md`; `loading` |
-| `IconButton`                        | icon-only actions; `aria-label` is required                               |
-| `TextField`                         | a labeled input, with a description or an error                           |
-| `Checkbox`                          | on/off, with a visible label or an `aria-label`                           |
-| `Card` + `Header`/`Title`/`Content` | a section of a screen                                                     |
-| `Badge`                             | a small status label (`tone`, optional `dot`)                             |
-| `Alert`                             | a message for a section, with an optional action                          |
-| `Stack`                             | layout: every gap between elements comes from here                        |
-| `Text`, `Heading`                   | body copy and headings                                                    |
+| Component                           | For                                                                           |
+| ----------------------------------- | ----------------------------------------------------------------------------- |
+| `Button`                            | actions: `primary`, `secondary`, `ghost`, `danger`; `sm`, `md`; `loading`     |
+| `IconButton`                        | icon-only actions; `aria-label` is required                                   |
+| `TextField`                         | a labeled input, with a description or an error                               |
+| `Checkbox`                          | on/off, with a visible label or an `aria-label`                               |
+| `Card` + `Header`/`Title`/`Content` | a section of a screen                                                         |
+| `Badge`                             | a small status label (`tone`, optional `dot`)                                 |
+| `Alert`                             | a message for a section, with an optional action                              |
+| `Stack`                             | layout: every gap between elements comes from here                            |
+| `Text`, `Heading`                   | body copy and headings                                                        |
+| `TitleBar`                          | Mac desktop shell only: the inset-traffic-light gutter and window drag region |
 
 Apps import the components and one stylesheet:
 

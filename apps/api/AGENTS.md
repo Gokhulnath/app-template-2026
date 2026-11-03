@@ -27,7 +27,10 @@ straight into the FastAPI app, so a tool call runs the exact same code as `/heal
   local Supabase stack's `myapp_api` role; `cors_allow_localhost` is off unless set.
 - `src/api/db.py` — `create_engine`/`database_ok`: the pool and the timeout-bounded health
   check `/health` and `get_status` both call.
-- `src/api/mcp.py` — `build_mcp_server`: the only tool today, `get_status`.
+- `src/api/mcp.py` — `build_mcp_server`: the only tool today, `get_status`. Its tools
+  feed `apps/cli/mcpb/manifest.json`'s own `tools` array, generated from this file by
+  `pnpm contract:generate` (`apps/cli/scripts/generate-mcpb-tools.mjs`) — never
+  hand-edit the manifest.
 - `docs/architecture.md` — API conventions (errors, CORS, versioning, the connection-pool
   budget) and what's still planned (auth, generated clients).
 

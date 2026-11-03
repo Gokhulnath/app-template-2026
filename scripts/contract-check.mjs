@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // Regenerates the contract (scripts/contract-generate.mjs) and fails if that changed
-// either generated file on disk -- i.e. apps/api/openapi.json or packages/api-types/
-// src/schema.d.ts have drifted from the API's actual routes and models. It compares the
-// files before and after regenerating, not against git: a contract that was regenerated
-// and staged but isn't committed yet is current, and must pass (lefthook runs this on
-// exactly that commit). Run by `pnpm lint` and by lefthook's pre-commit hook whenever
-// files under apps/api/src are staged (lefthook.yml), so contract drift never reaches a
-// PR.
+// any generated file on disk -- i.e. apps/api/openapi.json, packages/api-types/src/
+// schema.d.ts or apps/cli/mcpb/manifest.json have drifted from the API's actual routes,
+// models or MCP tools. It compares the files before and after regenerating, not against
+// git: a contract that was regenerated and staged but isn't committed yet is current,
+// and must pass (lefthook runs this on exactly that commit). Run by `pnpm lint` and by
+// lefthook's pre-commit hook whenever files under apps/api/src are staged
+// (lefthook.yml), so contract drift never reaches a PR.
 //
 //   pnpm contract:check
 //
@@ -17,7 +17,11 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
-const TRACKED = ["apps/api/openapi.json", "packages/api-types/src/schema.d.ts"];
+const TRACKED = [
+  "apps/api/openapi.json",
+  "packages/api-types/src/schema.d.ts",
+  "apps/cli/mcpb/manifest.json",
+];
 
 const read = (file) => {
   const full = path.join(root, file);

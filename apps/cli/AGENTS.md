@@ -37,8 +37,9 @@ There's no `pnpm --filter cli build`; `scripts/build-packages.sh` (`pnpm build:p
   registers `myapp-dark`/`myapp-light` as real Textual themes.
 - `mcp_server.py` — `build_server`: a `FastMCP` proxy, `provider_error_strategy="raise"`
   so an unreachable API surfaces as a clear MCP error instead of an empty tool list.
-- `mcpb/manifest.json`'s `tools` array is hand-maintained (today: `get_status`, matching
-  `apps/api/src/api/mcp.py`'s one tool) — nothing regenerates it.
+- `mcpb/manifest.json`'s `tools` array is generated, through `pnpm contract:generate`
+  (`scripts/generate-mcpb-tools.mjs`), from every tool `apps/api/src/api/mcp.py`
+  registers — never hand-edit it; `pnpm contract:check` fails the build when it's stale.
 
 ## Conventions and gotchas
 

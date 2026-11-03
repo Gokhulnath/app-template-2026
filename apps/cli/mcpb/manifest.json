@@ -38,7 +38,7 @@
   "tools": [
     {
       "name": "get_status",
-      "description": "Check whether the myapp API and its database are up"
+      "description": "Check whether the myapp API and its database are up."
     }
   ],
   "user_config": {

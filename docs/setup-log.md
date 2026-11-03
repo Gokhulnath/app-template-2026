@@ -2338,3 +2338,48 @@ required review.
 
 **Owner step.** Add the `ANTHROPIC_API_KEY` repository secret (Settings > Secrets and
 variables > Actions). Until then, only a pull request that touches migrations is blocked.
+
+## Generate the MCPB manifest's tool list from the API
+
+**Why.** `apps/cli/mcpb/manifest.json`'s `tools` array was hand-maintained, the same gap
+that drifted badly in the private product this template was extracted from (donna:
+6 hand-written names against 34 real tools, with no check catching it). myapp only has
+one tool today (`get_status`), so nothing has drifted yet, but the array could still go
+stale silently the moment a second tool is added, the same way donna's `openapi.json`
+and `schema.d.ts` could before `contract:generate`/`contract:check` existed.
+
+**What changed.**
+
+- `apps/cli/scripts/generate-mcpb-tools.mjs` (new): runs
+  `apps/api/scripts/export_mcp_tools.py` in-process (no running API, no database --
+  the same introspection `apps/docs`'s MCP reference page already uses) and writes each
+  tool's `name` plus its docstring's first paragraph, line-wrapping collapsed to one
+  line, into `mcpb/manifest.json`'s `tools` array, in `mcp.py`'s own registration order.
+  Re-formats the file with Prettier afterward, since `JSON.stringify` always expands
+  arrays this file's own style (checked by `pnpm lint`) collapses when they fit.
+- `scripts/contract-generate.mjs` gains a third step calling it
+  (`pnpm --filter cli run generate-mcpb-tools`); `scripts/contract-check.mjs` tracks
+  `apps/cli/mcpb/manifest.json` alongside the OpenAPI schema and the TS types, so a new
+  or renamed MCP tool that isn't reflected here now fails `pnpm lint` and the pre-commit
+  hook, reusing that one pipeline instead of a new test or CI job.
+- `apps/cli/AGENTS.md` and `apps/api/AGENTS.md`: replaced "hand-maintained" with a
+  pointer to the generator.
+
+**Not ported.** donna's generator also drops a set of worker-only tools
+(`api.mcp.INTERNAL_ONLY_TOOLS`) that would only ever error for an external MCP client,
+plus a source-grep regression test tying that set to the tools actually gated that way.
+myapp has no such tools and no service-credential concept at all, so there's nothing to
+filter and nothing a drift test could protect against; porting either would be dead
+code and an untestable test. Left a comment in the new script instead, pointing at
+donna's `INTERNAL_ONLY_TOOLS` as the pattern to copy if myapp ever grows a tool that
+needs to stay out of the manifest.
+
+**Verify.** `pnpm contract:check` passes clean; hand-corrupting `manifest.json`'s
+`tools` array and re-running it restores the generated content and exits 1 first,
+proving it catches drift. Running `generate-mcpb-tools` twice in a row produces
+byte-identical output (idempotent), and `pnpm exec prettier --check
+apps/cli/mcpb/manifest.json` passes after it. `pnpm install --frozen-lockfile`,
+`pnpm contract:generate` (a no-op diff except the manifest's one tool gaining a
+trailing period — the hand-written description had dropped it), `pnpm lint`,
+`pnpm typecheck`, and `pnpm --filter cli test` (14 passed) all pass locally; the
+DB-backed `apps/api` suite runs in CI.

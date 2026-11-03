@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 // Regenerates the API's committed contract and everything derived from it: apps/api/
 // openapi.json (the schema itself, exported straight from the FastAPI app -- see that
-// script) and packages/api-types/src/schema.d.ts (the TypeScript types every TS client
-// imports instead of hand-writing its own copy -- docs/architecture.md). Run this after
-// changing an API route or model (CLAUDE.md, "Working in the apps") and commit the
-// result; never hand-edit either generated file.
+// script), packages/api-types/src/schema.d.ts (the TypeScript types every TS client
+// imports instead of hand-writing its own copy -- docs/architecture.md), and
+// apps/cli/mcpb/manifest.json's own `tools` array (every MCP tool apps/api/src/api/
+// mcp.py registers, read off the real server -- apps/cli/scripts/
+// generate-mcpb-tools.mjs). Run this after changing an API route or model, or the API's
+// MCP tools (CLAUDE.md, "Working in the apps") and commit the result; never hand-edit a
+// generated file.
 //
 //   pnpm contract:generate
 //
@@ -32,4 +35,10 @@ step("generate TypeScript API types (packages/api-types/src/schema.d.ts)", [
   "@myapp/api-types",
   "run",
   "generate",
+]);
+step("generate the MCPB manifest's tools array (apps/cli/mcpb/manifest.json)", [
+  "--filter",
+  "cli",
+  "run",
+  "generate-mcpb-tools",
 ]);
